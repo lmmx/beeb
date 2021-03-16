@@ -76,7 +76,39 @@ class LocalChannel(Enum):
     tcr = channel("p00fzl96", "BBC Three Counties Radio", "threecountiesradio/programmes/schedules")
     wm = channel("p00fzl9f", "BBC WM 95.6", "wm/programmes/schedules")
 
-class ChannelPicker(Enum):
+class SearchableEnum:
+    @classmethod
+    def by_name(cls, name, must_exist=False):
+        matches = [
+            y.value[name].value for y in cls.__members__.values()
+            if name in y.value.__members__
+        ]
+        if len(matches) > 1:
+            raise ValueError(f"Enums are not unique: {matches=}")
+        if must_exist and not matches:
+            raise ValueError(f"No channel named {name}")
+        return matches[0] if matches else None
+
+    @classmethod
+    def by_id(cls, channel_id, must_exist=True):
+        matches = [
+            {
+                v.value.channel_id: v.value
+                for v in y.value.__members__.values()
+            }.get(channel_id)
+            for y in ChannelPicker.__members__.values()
+            if channel_id in [
+                x.value.channel_id
+                for x in y.value
+            ]
+        ]
+        if len(matches) > 1:
+            raise ValueError(f"Enum IDs are not unique: {matches=}")
+        if must_exist and not matches:
+            raise ValueError(f"No channel named {name}")
+        return matches[0] if matches else None
+
+class ChannelPicker(SearchableEnum, Enum):
     local = LocalChannel
     regional = RegionalChannel
     national = NationalChannel
