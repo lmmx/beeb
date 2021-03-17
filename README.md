@@ -28,6 +28,29 @@ These Schedule objects can be used to find programmes:
 00:00 on 17/03/2021 — Midnight News
 >>> s.get_broadcast_by_title("Midnight News", multi=True)
 [00:00 on 17/03/2021 — Midnight News, 00:00 on 18/03/2021 — Midnight News]
+>>> for b in s.get_broadcast_by_title(".*News", regex=True, multi=True): print(b)
+... 
+00:00 on 17/03/2021 — Midnight News
+05:30 on 17/03/2021 — News Briefing
+12:00 on 17/03/2021 — News Summary
+18:00 on 17/03/2021 — Six O'Clock News
+00:00 on 18/03/2021 — Midnight News
+05:30 on 18/03/2021 — News Briefing
+>>> for b in s.get_broadcast_by_title(".*news.*", multi=True, regex=True, case_insensitive=True, synopsis=True): print(b)
+... 
+00:00 on 17/03/2021 — Midnight News
+05:30 on 17/03/2021 — News Briefing
+06:00 on 17/03/2021 — Today
+12:00 on 17/03/2021 — News Summary
+13:00 on 17/03/2021 — World at One
+17:00 on 17/03/2021 — PM
+18:00 on 17/03/2021 — Six O'Clock News
+20:00 on 17/03/2021 — Moral Maze
+22:00 on 17/03/2021 — The World Tonight
+23:30 on 17/03/2021 — Today in Parliament
+00:00 on 18/03/2021 — Midnight News
+05:30 on 18/03/2021 — News Briefing
+05:45 on 18/03/2021 — Farming Today
 ```
 
 

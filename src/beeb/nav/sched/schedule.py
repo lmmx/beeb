@@ -1,10 +1,12 @@
 import requests
+import re
 from bs4 import BeautifulSoup as BS
 from ..channel_ids import ChannelPicker
 from ...time import parse_abs_from_rel_date, cal_path
 from datetime import datetime
 
 __all__ = ["Schedule"]
+
 
 class Schedule:
     """
@@ -20,6 +22,7 @@ class Schedule:
     since we can generate the calendar offline in Python,
     or individual listings (for a full date).
     """
+
     common_url_prefix = "https://www.bbc.co.uk/schedules/"
 
     @property
@@ -32,7 +35,7 @@ class Schedule:
         try:
             self.channel
         except Exception as e:
-            raise e # channel ID is invalid, don't accept
+            raise e  # channel ID is invalid, don't accept
         self.base_url = f"{self.common_url_prefix}{self.channel_id}"
         self.parse_schedule()
 
@@ -55,22 +58,38 @@ class Schedule:
         r.raise_for_status()
         self.soup = BS(r.content.decode(), features="html5lib")
         self.broadcasts = [
-            Broadcast.from_soup(b)
-            for b in self.soup.select(".broadcast")
+            Broadcast.from_soup(b) for b in self.soup.select(".broadcast")
         ]
 
     def __repr__(self):
         return f"Schedule for {self.channel.title} on {self.date}"
 
-    def get_broadcast_by_title(self, title, pid_only=False, multi=False, throw=True):
+    def get_broadcast_by_title(
+        self, title, pid_only=False, multi=False, regex=False, case_insensitive=False,
+        synopsis=False, throw=True
+    ):
         """
         Return the first broadcasts matching the given `title` if `multi` is
         False (default) or a list of all matches if `multi` is True. Return
         only the `pid` string if `pid_only` is True. If `throw` is True (default),
         raise error if not found else return `None` (if not `multi`) or empty list
-        (if `multi` is True).
+        (if `multi` is True). Match the `title` as a regular expression if `regex` is
+        True (raw strings are recommended for this). Also match against the subtitle
+        and synopsis if `synopsis` is True.
         """
-        v = [b.pid if pid_only else b for b in self.broadcasts if b.title == title]
+        if regex:
+            if case_insensitive:
+                rc = re.compile(title, re.IGNORECASE)
+            else:
+                rc = re.compile(title)
+        is_match = rc.match if regex else title.__eq__ # re.Match object is truthy
+        v = [
+            b.pid if pid_only else b for b in self.broadcasts
+            if any(
+                is_match(t)
+                for t in ([b.title, b.subtitle, b.synopsis] if synopsis else [b.title])
+            )
+        ]
         if not v:
             if throw:
                 raise ValueError(f"No broadcast {title} on {self.date_repr}")
@@ -80,12 +99,14 @@ class Schedule:
             v = v[0]
         return v
 
+
 class Broadcast:
-    def __init__(self, dt, pid, title, subtitle):
+    def __init__(self, dt, pid, title, subtitle, synopsis):
         self.time = dt
         self.pid = pid
         self.title = title
         self.subtitle = subtitle
+        self.synopsis = synopsis
 
     @classmethod
     def from_soup(cls, bsoup):
@@ -95,14 +116,18 @@ class Broadcast:
         pid = bsoup.select_one("*[data-pid]")
         title = bsoup.select_one(".programme__titles .programme__title")
         subtitle = bsoup.select_one(".programme__titles .programme__subtitle")
-        text_tags = title, subtitle
+        synopsis = bsoup.select_one(".programme__body .programme__synopsis span")
+        text_tags = title, subtitle, synopsis
         dt = bsoup.select_one("h3.broadcast__time[content]")
         if not all([pid, dt, *text_tags]):
-            raise ValueError(f"Missing one or more of: {pid=} {title=} {subtitle=}")
-        title, subtitle = [x.text for x in text_tags]
+            raise ValueError(
+                f"Missing one or more of: "
+                f"{pid=} {title=} {subtitle=}, {synopsis=}"
+            )
+        title, subtitle, synopsis = [x.text for x in text_tags]
         pid = pid.attrs["data-pid"]
         dt = datetime.fromisoformat(dt.attrs["content"])
-        return cls(dt, pid, title, subtitle)
+        return cls(dt, pid, title, subtitle, synopsis)
 
     @property
     def date_repr(self):
@@ -111,6 +136,6 @@ class Broadcast:
     @property
     def time_repr(self):
         return self.time.strftime("%H:%M")
-    
+
     def __repr__(self):
         return f"{self.time_repr} on {self.date_repr} — {self.title}"
