@@ -21,6 +21,9 @@ class Schedule:
     which are only useful for indicating the furthest ahead available listings,
     since we can generate the calendar offline in Python,
     or individual listings (for a full date).
+
+    BBC schedules have redundant entries after midnight, so these are dropped
+    (they should be loaded from that day's entries instead).
     """
 
     common_url_prefix = "https://www.bbc.co.uk/schedules/"
@@ -44,12 +47,16 @@ class Schedule:
         if self.date:
             return self.date.strftime("%d/%m/%Y")
 
+    @property
+    def ymd(self):
+        return (self.date.year, self.date.month, self.date.day)
+
     @classmethod
     def from_channel_name(cls, name, date=None):
         channel = ChannelPicker.by_name(name, must_exist=True)
         return cls(channel.channel_id, date=date)
 
-    def parse_schedule(self):
+    def parse_schedule(self, drop_next_day_broadcasts=True):
         if self.date is None:
             self.date = parse_abs_from_rel_date()
         ymd_path = "/".join(cal_path(self.date, as_tuple=True)) if self.date else None
@@ -60,6 +67,11 @@ class Schedule:
         self.broadcasts = [
             Broadcast.from_soup(b) for b in self.soup.select(".broadcast")
         ]
+        if drop_next_day_broadcasts:
+            self.broadcasts = [
+                b for b in self.broadcasts
+                if (b.time.year, b.time.month, b.time.day) == self.ymd
+            ]
 
     def __repr__(self):
         return f"Schedule for {self.channel.title} on {self.date}"
