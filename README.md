@@ -28,7 +28,7 @@ These Schedule objects can be used to find programmes:
 00:00 on 17/03/2021 — Midnight News
 >>> s.get_broadcast_by_title("Midnight News", multi=True)
 [00:00 on 17/03/2021 — Midnight News, 00:00 on 18/03/2021 — Midnight News]
->>> for b in s.get_broadcast_by_title(".*News", regex=True, multi=True): print(b)
+>>> for b in s.get_broadcast_by_title(r".*\bNews\b", regex=True, multi=True): print(b)
 ... 
 00:00 on 17/03/2021 — Midnight News
 05:30 on 17/03/2021 — News Briefing
@@ -36,7 +36,8 @@ These Schedule objects can be used to find programmes:
 18:00 on 17/03/2021 — Six O'Clock News
 00:00 on 18/03/2021 — Midnight News
 05:30 on 18/03/2021 — News Briefing
->>> for b in s.get_broadcast_by_title(".*news.*", multi=True, regex=True, case_insensitive=True, synopsis=True): print(b)
+>>> for b in s.get_broadcast_by_title(r".*\bnews\b", multi=True,
+... case_insensitive=True, regex=True, synopsis=True): print(b)
 ... 
 00:00 on 17/03/2021 — Midnight News
 05:30 on 17/03/2021 — News Briefing
@@ -51,6 +52,13 @@ These Schedule objects can be used to find programmes:
 00:00 on 18/03/2021 — Midnight News
 05:30 on 18/03/2021 — News Briefing
 05:45 on 18/03/2021 — Farming Today
+>>> for b in s.get_broadcast_by_title(
+... r".*\b(pandemic|virus|coronavirus|Covid|vaccines?|vaccinations?|health|healthcare|NHS)\b",
+... multi=True, case_insensitive=True, regex=True, synopsis=True): print(b)
+... 
+10:00 on 17/03/2021 — Woman's Hour
+15:00 on 17/03/2021 — Money Box
+15:30 on 17/03/2021 — Inside Health
 ```
 
 
