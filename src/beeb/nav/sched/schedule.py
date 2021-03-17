@@ -36,6 +36,11 @@ class Schedule:
         self.base_url = f"{self.common_url_prefix}{self.channel_id}"
         self.parse_schedule()
 
+    @property
+    def date_repr(self):
+        if self.date:
+            return self.date.strftime("%d/%m/%Y")
+
     @classmethod
     def from_channel_name(cls, name, date=None):
         channel = ChannelPicker.by_name(name, must_exist=True)
@@ -56,6 +61,24 @@ class Schedule:
 
     def __repr__(self):
         return f"Schedule for {self.channel.title} on {self.date}"
+
+    def get_broadcast_by_title(self, title, pid_only=False, multi=False, throw=True):
+        """
+        Return the first broadcasts matching the given `title` if `multi` is
+        False (default) or a list of all matches if `multi` is True. Return
+        only the `pid` string if `pid_only` is True. If `throw` is True (default),
+        raise error if not found else return `None` (if not `multi`) or empty list
+        (if `multi` is True).
+        """
+        v = [b.pid if pid_only else b for b in self.broadcasts if b.title == title]
+        if not v:
+            if throw:
+                raise ValueError(f"No broadcast {title} on {self.date_repr}")
+            elif not multi:
+                v = None
+        elif not multi:
+            v = v[0]
+        return v
 
 class Broadcast:
     def __init__(self, dt, pid, title, subtitle):
@@ -80,3 +103,14 @@ class Broadcast:
         pid = pid.attrs["data-pid"]
         dt = datetime.fromisoformat(dt.attrs["content"])
         return cls(dt, pid, title, subtitle)
+
+    @property
+    def date_repr(self):
+        return self.time.strftime("%d/%m/%Y")
+
+    @property
+    def time_repr(self):
+        return self.time.strftime("%H:%M")
+    
+    def __repr__(self):
+        return f"{self.time_repr} on {self.date_repr} — {self.title}"

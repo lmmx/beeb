@@ -17,6 +17,20 @@ Schedule.from_channel_name("r4")
 Schedule for BBC Radio 4 on 2021-03-16
 ```
 
+These Schedule objects can be used to find programmes:
+
+```py
+>>> from beeb.nav import Schedule
+>>> s = Schedule.from_channel_name("r4")
+>>> s.get_broadcast_by_title("Today", True)
+'m000t476'
+>>> s.get_broadcast_by_title("Midnight News")
+00:00 on 17/03/2021 — Midnight News
+>>> s.get_broadcast_by_title("Midnight News", multi=True)
+[00:00 on 17/03/2021 — Midnight News, 00:00 on 18/03/2021 — Midnight News]
+```
+
+
 ## Description
 
 _beeb_ centres around the `Schedule`, which is not limited to a single day's listings:
