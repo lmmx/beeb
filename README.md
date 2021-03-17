@@ -30,7 +30,7 @@ These Schedule objects can be used to find programmes:
 [00:00 on 17/03/2021 — Midnight News, 00:00 on 18/03/2021 — Midnight News]
 ```
 
-<details><summary>More complex examples...</summary>
+<details><summary>Click here for more complex examples</summary>
 
 <p>
 
