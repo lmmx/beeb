@@ -28,6 +28,13 @@ These Schedule objects can be used to find programmes:
 00:00 on 17/03/2021 — Midnight News
 >>> s.get_broadcast_by_title("Midnight News", multi=True)
 [00:00 on 17/03/2021 — Midnight News, 00:00 on 18/03/2021 — Midnight News]
+```
+
+<details><summary>More complex examples...</summary>
+
+<p>
+
+```py
 >>> for b in s.get_broadcast_by_title(r".*\bNews\b", regex=True, multi=True): print(b)
 ... 
 00:00 on 17/03/2021 — Midnight News
@@ -60,6 +67,10 @@ These Schedule objects can be used to find programmes:
 15:00 on 17/03/2021 — Money Box
 15:30 on 17/03/2021 — Inside Health
 ```
+
+</p>
+
+</details>
 
 
 ## Description
