@@ -6,23 +6,28 @@ A modern interface to the BBC Sounds radio catalogue.
 
 ## Usage
 
-- Create a schedule for BBC R4, defaulting to today's date:
+_beeb_ centres around the `ChannelSchedule`, which stores a single day's listings, for a single channel.
+
+- National, local, regional channels can be selected by ID or short name
+- The schedule with today's date is loaded by default
+
+To load today's schedule for BBC R4:
 
 ```py
-from beeb.nav import Schedule
-Schedule.from_channel_name("r4")
+from beeb.nav import ChannelSchedule
+ChannelSchedule.from_channel_name("r4")
 ```
 ⇣
 ```
-Schedule for BBC Radio 4 on 2021-03-16
+ChannelSchedule for BBC Radio 4 on 2021-03-16
 ```
 
-These Schedule objects can be used to find programmes:
+These ChannelSchedule objects can be used to find programmes:
 
 ```py
->>> from beeb.nav import Schedule
->>> s = Schedule.from_channel_name("r4")
->>> s.get_broadcast_by_title("Today", True)
+>>> from beeb.nav import ChannelSchedule
+>>> s = ChannelSchedule.from_channel_name("r4")
+>>> s.get_broadcast_by_title("Today", pid_only=True)
 'm000t476'
 >>> s.get_broadcast_by_title("Midnight News")
 00:00 on 17/03/2021 — Midnight News
@@ -69,11 +74,13 @@ These Schedule objects can be used to find programmes:
 
 </details>
 
+As well as a single day, _beeb_ has `ChannelListings`, a collection of `ChannelSchedule` objects over a
+given time period (from up to 30 days ago).
 
-## Description
+```py
+>>> from beeb.nav import ChannelListings
+>>> ChannelListings.from_channel_name("r4")
+ChannelListings for BBC Radio 4 from 2021-02-16 to 2021-03-17 (30 days)
+```
 
-_beeb_ centres around the `Schedule`, which is not limited to a single day's listings:
-
-- ≥1 channels (national, local, regional; indicate by ID or name)
-- ≥1 dates (only today by default, or past N days, or from particular date to another date)
-- ≥1 times of day ('early', 'morning', 'afternoon', 'evening', 'late')
+- (TODO: async requests for these listings)

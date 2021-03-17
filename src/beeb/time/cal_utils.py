@@ -10,6 +10,7 @@ __all__ = [
     "y_shift", "m_shift", "d_shift",
     "cal_shift", "cal_date",
     "parse_abs_from_rel_date",
+    "parse_date_range"
 ]
 
 def cal_y(date=cal_date.today(), full_y=True):
@@ -83,3 +84,33 @@ def parse_abs_from_rel_date(ymd=None, ymd_ago=None):
         # else implies ymd was supplied
     # In each of the above cases `ymd` is now a `datetime.date` object
     return ymd
+
+def parse_date_range(from_date=None, to_date=None, n_days=None, max_days_ago=30):
+    """
+    Handle all possible specifications of date ranges from default blank arguments,
+    ensuring `to_date` is not before `from_date`, defaulting to 30 days ago as
+    the maximum time range if not otherwise specified (this is specified by BBC at
+    bbc.co.uk/sounds/help/questions/programme-availability/programme-availability).
+    """
+    if not to_date:
+        if from_date:
+            if n_days:
+                # Subtract 1 to zero base the number of days (inclusive of to_date)
+                ymd_shift = (0, 0, n_days - 1)
+            else:
+                n_days = max_days_ago
+            to_date = parse_abs_from_rel_date(from_date, ymd_ago=ymd_shift)
+        else:
+            to_date = parse_abs_from_rel_date() # defaults to today's date
+    # to_date has now been acquired
+    if from_date:
+        # disregard `n_days` even if supplied, explicit_date overrules it
+        n_days = (to_date - from_date).days + 1
+    else:
+        if not n_days:
+            n_days = max_days_ago
+        ymd_shift = (0, 0, 1 - n_days)
+        from_date = parse_abs_from_rel_date(to_date, ymd_ago=ymd_shift)
+    if to_date < from_date:
+        raise ValueError(f"{to_date=} is before {from_date=}") # impossible
+    return from_date, to_date, n_days

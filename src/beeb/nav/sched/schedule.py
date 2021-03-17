@@ -2,19 +2,24 @@ import requests
 import re
 from bs4 import BeautifulSoup as BS
 from ..channel_ids import ChannelPicker
-from ...time import parse_abs_from_rel_date, cal_path
+from ...time import parse_abs_from_rel_date, cal_path, parse_date_range
 from datetime import datetime
 
-__all__ = ["Schedule"]
+__all__ = ["ChannelSchedule", "ChannelListings", "Broadcast"]
+
+class RemoteMixIn:
+    @property
+    def channel(self):
+        return ChannelPicker.by_id(self.channel_id)
 
 
-class Schedule:
+class ChannelSchedule(RemoteMixIn):
     """
-    Schedule for the channel specified by ID in the init method or using
+    ChannelSchedule for the channel specified by ID in the init method or using
     the constructor classmethod `from_channel_name` which retrieves the channel
     ID from a string (the shortname given in `beeb.nav.channel_ids`).
 
-    The contents of a Schedule is the schedule listings for a single day,
+    The contents of a ChannelSchedule is the schedule listings for a single day,
     and the date can be specified as a datetime object `date`. The
     `base_url` gives the current day's schedule, and adding date subpaths
     onto it gives a calendar view (for just the year or year and month),
@@ -28,11 +33,8 @@ class Schedule:
 
     common_url_prefix = "https://www.bbc.co.uk/schedules/"
 
-    @property
-    def channel(self):
-        return ChannelPicker.by_id(self.channel_id)
-
     def __init__(self, channel_id, date=None):
+        print(f"Creating {channel_id} schedule on {date}")
         self.channel_id = channel_id
         self.date = date
         try:
@@ -41,6 +43,7 @@ class Schedule:
             raise e  # channel ID is invalid, don't accept
         self.base_url = f"{self.common_url_prefix}{self.channel_id}"
         self.parse_schedule()
+        print(f"Created {channel_id} schedule on {date}")
 
     @property
     def date_repr(self):
@@ -53,8 +56,8 @@ class Schedule:
 
     @classmethod
     def from_channel_name(cls, name, date=None):
-        channel = ChannelPicker.by_name(name, must_exist=True)
-        return cls(channel.channel_id, date=date)
+        ch = ChannelPicker.by_name(name, must_exist=True)
+        return cls(ch.channel_id, date=date)
 
     def parse_schedule(self, drop_next_day_broadcasts=True):
         if self.date is None:
@@ -74,7 +77,7 @@ class Schedule:
             ]
 
     def __repr__(self):
-        return f"Schedule for {self.channel.title} on {self.date}"
+        return f"ChannelSchedule for {self.channel.title} on {self.date}"
 
     def get_broadcast_by_title(
         self, title, pid_only=False, multi=False, regex=False, case_insensitive=False,
@@ -131,12 +134,15 @@ class Broadcast:
         synopsis = bsoup.select_one(".programme__body .programme__synopsis span")
         text_tags = title, subtitle, synopsis
         dt = bsoup.select_one("h3.broadcast__time[content]")
-        if not all([pid, dt, *text_tags]):
+        if not all([pid, dt, title]):
+            # Allow the others (subtitle and synopsis) to be missing
             raise ValueError(
                 f"Missing one or more of: "
-                f"{pid=} {title=} {subtitle=}, {synopsis=}"
+                f"{pid=} {dt=} {title=} {subtitle=}"
             )
-        title, subtitle, synopsis = [x.text for x in text_tags]
+        title, subtitle, synopsis = [
+            x.text if x else "" for x in text_tags
+        ] # ensure strings even if missing, title is ensured to exist
         pid = pid.attrs["data-pid"]
         dt = datetime.fromisoformat(dt.attrs["content"])
         return cls(dt, pid, title, subtitle, synopsis)
@@ -151,3 +157,42 @@ class Broadcast:
 
     def __repr__(self):
         return f"{self.time_repr} on {self.date_repr} — {self.title}"
+
+class ChannelListings(RemoteMixIn):
+    """
+    Listings for a given channel
+    """
+    def __init__(self, channel_id, from_date=None, to_date=None, n_days=None):
+        self.channel_id = channel_id
+        from_date, to_date, n_days = parse_date_range(from_date, to_date, n_days)
+        self.from_date, self.to_date, self.n_days = from_date, to_date, n_days
+        self.schedules = self.make_schedules() # includes channel ID error handling
+
+
+    def make_schedules(self):
+        schedules = []
+        for i in range(self.n_days):
+            ymd_shift = (0, 0, i)
+            d = parse_abs_from_rel_date(self.from_date, ymd_ago=ymd_shift)
+            s = ChannelSchedule(self.channel_id, date=d)
+            schedules.append(s)
+        return schedules
+
+    @classmethod
+    def from_channel_name(cls, name, from_date=None, to_date=None, n_days=None):
+        ch = ChannelPicker.by_name(name, must_exist=True)
+        return cls(ch.channel_id, from_date=from_date, to_date=to_date, n_days=n_days)
+
+    @property
+    def date_repr(self):
+        return self.time.strftime("%d/%m/%Y")
+
+    @property
+    def time_repr(self):
+        return self.time.strftime("%H:%M")
+
+    def __repr__(self):
+        return (
+            f"ChannelListings for {self.channel.title} "
+            f"from {self.from_date} to {self.to_date} ({self.n_days} days)"
+        )
