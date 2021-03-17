@@ -26,7 +26,7 @@ These Schedule objects can be used to find programmes:
 'm000t476'
 >>> s.get_broadcast_by_title("Midnight News")
 00:00 on 17/03/2021 — Midnight News
->>> for b in s.get_broadcast_by_title("Shipping Forecast", multi=True): print(b)
+>>> for b in s.get_broadcast_by_title("Shipping Forecast", multi=True): b
 00:48 on 17/03/2021 — Shipping Forecast
 05:20 on 17/03/2021 — Shipping Forecast
 12:03 on 17/03/2021 — Shipping Forecast
@@ -37,7 +37,7 @@ These Schedule objects can be used to find programmes:
 <p>
 
 ```py
->>> for b in s.get_broadcast_by_title(r".*\bNews\b", regex=True, multi=True): print(b)
+>>> for b in s.get_broadcast_by_title(r".*\bNews\b", regex=True, multi=True): b
 ... 
 00:00 on 17/03/2021 — Midnight News
 05:30 on 17/03/2021 — News Briefing
