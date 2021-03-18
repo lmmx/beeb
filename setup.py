@@ -22,7 +22,7 @@ setup(
     license="MIT License",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url=f"https://github.com/{gh_handle}",
+    url="https://github.com/lmmx/beeb",
     packages=find_packages("src"),
     package_dir={"": "src"},
     classifiers=[
