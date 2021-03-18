@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
 # Change markdown image tags to HTML for PyPI
 md_img_tagger = re.compile(r"\n!\[\]\((.*)\)")
 long_description = md_img_tagger.split(long_description)
-long_description[1] = f'\n<img src="{gh_raw_url}/{gh_handle}/master/{e[1]}"/>'
+long_description[1] = f'\n<img src="{gh_raw_url}/{gh_handle}/master/{long_description[1]}"/>'
 long_description = "".join(long_description)
 
 with open("requirements.txt", "r") as fh:
