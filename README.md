@@ -107,34 +107,34 @@ to avoid too much parameter passing).
 
 ```py
 >>> for i, b in enumerate(l.get_broadcast_by_title("Today", multi=True)):
-...     print(f"{i:2}: {b}")
+...     print(f"{i:2}) {b}")
 ... 
- 0: 06:00 on Wed 17/02/2021 — Today
- 1: 06:00 on Thu 18/02/2021 — Today
- 2: 06:00 on Fri 19/02/2021 — Today
- 3: 07:00 on Sat 20/02/2021 — Today
- 4: 06:00 on Mon 22/02/2021 — Today
- 5: 06:00 on Tue 23/02/2021 — Today
- 6: 06:00 on Wed 24/02/2021 — Today
- 7: 06:00 on Thu 25/02/2021 — Today
- 8: 06:00 on Fri 26/02/2021 — Today
- 9: 07:00 on Sat 27/02/2021 — Today
-10: 06:00 on Mon 01/03/2021 — Today
-11: 06:00 on Tue 02/03/2021 — Today
-12: 06:00 on Wed 03/03/2021 — Today
-13: 06:00 on Thu 04/03/2021 — Today
-14: 06:00 on Fri 05/03/2021 — Today
-15: 07:00 on Sat 06/03/2021 — Today
-16: 06:00 on Mon 08/03/2021 — Today
-17: 06:00 on Tue 09/03/2021 — Today
-18: 06:00 on Wed 10/03/2021 — Today
-19: 06:00 on Thu 11/03/2021 — Today
-20: 06:00 on Fri 12/03/2021 — Today
-21: 07:00 on Sat 13/03/2021 — Today
-22: 06:00 on Mon 15/03/2021 — Today
-23: 06:00 on Tue 16/03/2021 — Today
-24: 06:00 on Wed 17/03/2021 — Today
-25: 06:00 on Thu 18/03/2021 — Today
+ 0) 06:00 on Wed 17/02/2021 — Today
+ 1) 06:00 on Thu 18/02/2021 — Today
+ 2) 06:00 on Fri 19/02/2021 — Today
+ 3) 07:00 on Sat 20/02/2021 — Today
+ 4) 06:00 on Mon 22/02/2021 — Today
+ 5) 06:00 on Tue 23/02/2021 — Today
+ 6) 06:00 on Wed 24/02/2021 — Today
+ 7) 06:00 on Thu 25/02/2021 — Today
+ 8) 06:00 on Fri 26/02/2021 — Today
+ 9) 07:00 on Sat 27/02/2021 — Today
+10) 06:00 on Mon 01/03/2021 — Today
+11) 06:00 on Tue 02/03/2021 — Today
+12) 06:00 on Wed 03/03/2021 — Today
+13) 06:00 on Thu 04/03/2021 — Today
+14) 06:00 on Fri 05/03/2021 — Today
+15) 07:00 on Sat 06/03/2021 — Today
+16) 06:00 on Mon 08/03/2021 — Today
+17) 06:00 on Tue 09/03/2021 — Today
+18) 06:00 on Wed 10/03/2021 — Today
+19) 06:00 on Thu 11/03/2021 — Today
+20) 06:00 on Fri 12/03/2021 — Today
+21) 07:00 on Sat 13/03/2021 — Today
+22) 06:00 on Mon 15/03/2021 — Today
+23) 06:00 on Tue 16/03/2021 — Today
+24) 06:00 on Wed 17/03/2021 — Today
+25) 06:00 on Thu 18/03/2021 — Today
 ```
 
 - Here's a query of all programmes which mention vaccin(es,ations,inologists) in their
