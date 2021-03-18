@@ -16,7 +16,103 @@ class RemoteMixIn:
         return ChannelPicker.by_id(self.channel_id)
 
 
-class ChannelSchedule(RemoteMixIn):
+class ScheduleSieve:
+    """
+    Internal exposed via ScheduleSearchMixIn, reusable for multiple schedules.
+    """
+    def __init__(self, query, pid_only, multi, regex, uncased, synopsis, throw):
+        self.query = query
+        self.pid_only = pid_only
+        self.multi = multi
+        self.regex = regex
+        self.uncased = uncased
+        self.synopsis = synopsis
+        self.throw = throw
+
+    def search(self, schedule):
+        if self.regex:
+            if self.uncased:
+                rc = re.compile(self.query, re.IGNORECASE)
+            else:
+                rc = re.compile(self.query)
+        # re.Match object is truthy, so use for regex searches not the equality operator
+        is_match = rc.match if self.regex else self.query.__eq__
+        v = [
+            b.pid if self.pid_only else b for b in schedule.broadcasts
+            if any(
+                is_match(t) for t in ([b.title, b.subtitle, b.synopsis]
+                if self.synopsis else [b.title])
+            )
+        ]
+        if not v:
+            if self.throw:
+                q_repr = f"matching '{self.query}'" if self.regex else f"'{self.query}'"
+                raise ValueError(f"No broadcast {q_repr} on {schedule.date_repr}")
+            elif not self.multi:
+                v = None
+        elif not self.multi:
+            v = v[0]
+        return v
+
+    def search_listings(self, listings):
+        errors = [] # only populated if throwing errors
+        result = [] if self.multi else None
+        for schedule in listings.schedules:
+            try:
+                search_result = self.search(schedule)
+                if self.multi:
+                    # flat list: don't distinguish individual schedules in listings
+                    result.extend(search_result) # does nothing if empty list returned
+                elif search_result:
+                    # First non-None: break out of for loop ASAP, return result
+                    result = search_result
+                    break
+            except ValueError as e:
+                if self.throw:
+                    errors.append(e)
+                # Ignore all errors until iterating through all schedules
+        if errors and not result:
+            if len(errors) > 1:
+                print(f"{errors=}")
+                litany = []
+                for e in errors:
+                    litany.extend(e.args)
+                litany_str = "\n".join(litany)
+                raise ValueError(f"Multiple errors:\n{litany_str}")
+            raise errors[0]
+        return result
+
+class ScheduleSearchMixIn:
+    def __init__(
+        self, title, pid_only=False, multi=False, regex=False, case_insensitive=False,
+        synopsis=False, throw=True
+    ):
+        """
+        Return the first broadcasts matching the given `title` if `multi` is
+        False (default) or a list of all matches if `multi` is True. Return
+        only the `pid` string if `pid_only` is True. If `throw` is True (default),
+        raise error if not found else return `None` (if not `multi`) or empty list
+        (if `multi` is True). Match the `title` as a regular expression if `regex` is
+        True (raw strings are recommended for this). Also match against the subtitle
+        and synopsis if `synopsis` is True.
+        """
+        # Either one ChannelSchedule, or a ChannelListings with `.schedules` attr
+        from_sched = hasattr(self, "broadcasts")
+        #from_listing = hasattr(self, "schedules")
+        #if not (from_listing or from_sched):
+        #    raise ValueError("Need either schedules nor broadcasts attribute")
+        sieve = ScheduleSieve(
+            title, pid_only, multi, regex, case_insensitive, synopsis, throw
+        )
+        return sieve.search(self) if from_sched else sieve.search_listings(self)
+    
+    # Bind the init method of a mixin class: common method interface between
+    # mixin inheritors without kwarg passing (unlike kwarg passing, keeps
+    # informative docstrings), while also clarifying where the filter logic really is
+    get_broadcast_by_title = __init__
+
+
+class ChannelSchedule(ScheduleSearchMixIn, RemoteMixIn):
     """
     ChannelSchedule for the channel specified by ID in the init method or using
     the constructor classmethod `from_channel_name` which retrieves the channel
@@ -105,42 +201,6 @@ class ChannelSchedule(RemoteMixIn):
     def __repr__(self):
         return f"ChannelSchedule for {self.channel.title} on {self.date}"
 
-    def get_broadcast_by_title(
-        self, title, pid_only=False, multi=False, regex=False, case_insensitive=False,
-        synopsis=False, throw=True
-    ):
-        """
-        Return the first broadcasts matching the given `title` if `multi` is
-        False (default) or a list of all matches if `multi` is True. Return
-        only the `pid` string if `pid_only` is True. If `throw` is True (default),
-        raise error if not found else return `None` (if not `multi`) or empty list
-        (if `multi` is True). Match the `title` as a regular expression if `regex` is
-        True (raw strings are recommended for this). Also match against the subtitle
-        and synopsis if `synopsis` is True.
-        """
-        if regex:
-            if case_insensitive:
-                rc = re.compile(title, re.IGNORECASE)
-            else:
-                rc = re.compile(title)
-        is_match = rc.match if regex else title.__eq__ # re.Match object is truthy
-        v = [
-            b.pid if pid_only else b for b in self.broadcasts
-            if any(
-                is_match(t)
-                for t in ([b.title, b.subtitle, b.synopsis] if synopsis else [b.title])
-            )
-        ]
-        if not v:
-            if throw:
-                raise ValueError(f"No broadcast {title} on {self.date_repr}")
-            elif not multi:
-                v = None
-        elif not multi:
-            v = v[0]
-        return v
-
-
 class Broadcast:
     def __init__(self, dt, pid, title, subtitle, synopsis):
         self.time = dt
@@ -181,10 +241,15 @@ class Broadcast:
     def time_repr(self):
         return self.time.strftime("%H:%M")
 
-    def __repr__(self):
-        return f"{self.time_repr} on {self.date_repr} — {self.title}"
+    @property
+    def day_of_week(self):
+        return self.time.strftime("%a")
 
-class ChannelListings(RemoteMixIn):
+    def __repr__(self):
+        date_str = f"{self.day_of_week} {self.date_repr}"
+        return f"{self.time_repr} on {date_str} — {self.title}"
+
+class ChannelListings(ScheduleSearchMixIn, RemoteMixIn):
     """
     Listings for a given channel
     """
