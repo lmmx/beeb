@@ -3,6 +3,8 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+long_description = long_description.replace("beeb_logo.png", "beeb_logo_small.png")
+
 with open("requirements.txt", "r") as fh:
     reqs = fh.read().splitlines()
 
