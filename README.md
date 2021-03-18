@@ -103,6 +103,8 @@ to avoid too much parameter passing).
 <p>
 
 
+- There were 26 'Today' episodes aired on BBC R4 in the last 30 days (not aired on Sundays):
+
 ```py
 >>> for i, b in enumerate(l.get_broadcast_by_title("Today", multi=True)):
 ...     print(f"{i:2}: {b}")
@@ -135,7 +137,8 @@ to avoid too much parameter passing).
 25: 06:00 on Thu 18/03/2021 — Today
 ```
 
-- There were 26 'Today' episodes aired on BBC R4 in the last 30 days (not aired on Sundays)
+- Here's a query of all programmes which mention vaccin(es,ations,inologists) in their
+  title/subtitle/synopsis:
 
 ```py
 >>> for b in l.get_broadcast_by_title(r".*\b(vaccin.+?)\b", multi=True, case_insensitive=True,
