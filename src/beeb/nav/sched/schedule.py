@@ -73,12 +73,18 @@ class ScheduleSieve:
                 # Ignore all errors until iterating through all schedules
         if errors and not result:
             if len(errors) > 1:
-                print(f"{errors=}")
                 litany = []
                 for e in errors:
                     litany.extend(e.args)
-                litany_str = "\n".join(litany)
-                raise ValueError(f"Multiple errors:\n{litany_str}")
+                if all(e.startswith("No broadcast") for e in litany):
+                    error_start = " ".join(litany[0].split(" ")[:-2])
+                    error_start_date = litany[0].split(" ")[-1]
+                    error_end_date = litany[-1].split(" ")[-1]
+                    error_date_range = f"{error_start_date} and {error_end_date}"
+                    err_str = f"{error_start} between {error_date_range}"
+                else:
+                    err_str = f"Multiple errors:\n" + "\n".join(litany)
+                raise ValueError(err_str)
             raise errors[0]
         return result
 
