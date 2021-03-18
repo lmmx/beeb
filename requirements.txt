@@ -1,2 +1,5 @@
 bs4
-requests
+httpx[http2]
+aiostream
+tqdm
+more_itertools

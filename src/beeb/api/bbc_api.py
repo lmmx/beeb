@@ -1,7 +1,7 @@
 from xml.etree import ElementTree as ET
 from bs4 import BeautifulSoup as BS
 from json import loads
-import requests
+import httpx
 from ..time.isotime import total_seconds_in_isoduration
 from math import ceil
 
@@ -24,7 +24,7 @@ def get_episode_dict(series_pid, page_num=1, paginate_until_ymd=None):
     # TODO: extend this to return all episode dates and PIDs if that's desirable
     url_prefix = f"https://www.bbc.co.uk/programmes/{series_pid}/episodes/player?page="
     url = f"{url_prefix}{page_num}"
-    episodes_resp = requests.get(url)
+    episodes_resp = httpx.get(url)
     episodes_resp.raise_for_status()
     soup = BS(episodes_resp.content.decode(), features="html5lib")
     episoup = soup.select("div[data-pid]")
@@ -86,7 +86,7 @@ def final_m4s_link_from_episode_pid(episode_pid):
     """
     verpid = episode_pid
     pid_json_url = f"https://www.bbc.co.uk/programmes/{episode_pid}/playlist.json"
-    pid_json_resp = requests.get(pid_json_url)
+    pid_json_resp = httpx.get(pid_json_url)
     pid_json_resp.raise_for_status()
     pid_json = loads(pid_json_resp.content.decode())
     verpid = pid_json["defaultAvailableVersion"]["pid"]
@@ -95,7 +95,7 @@ def final_m4s_link_from_episode_pid(episode_pid):
         f"https://open.live.bbc.co.uk/mediaselector/{mediaset_v}/"
         f"select/version/2.0/mediaset/pc/vpid/{verpid}"
     )
-    mediaset_resp = requests.get(mediaset_url)
+    mediaset_resp = httpx.get(mediaset_url)
     mediaset_resp.raise_for_status()
     mediaset_json = loads(mediaset_resp.content.decode())
     if mediaset_json.get("result") == "selectionunavailable":
@@ -110,7 +110,7 @@ def final_m4s_link_from_episode_pid(episode_pid):
         ],
         key=lambda e: int(e["priority"]),
     )[0]["href"]
-    mpd_resp = requests.get(mpd_url)
+    mpd_resp = httpx.get(mpd_url)
     mpd_resp.raise_for_status()
     mpd_resp_xml = ET.fromstring(mpd_resp.content.decode())
     duration_string = mpd_resp_xml.get("mediaPresentationDuration")

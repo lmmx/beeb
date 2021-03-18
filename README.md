@@ -74,13 +74,21 @@ These ChannelSchedule objects can be used to find programmes:
 
 </details>
 
-As well as a single day, _beeb_ has `ChannelListings`, a collection of `ChannelSchedule` objects over a
+As well as schedules for a single day, _beeb_ has `ChannelListings`, a collection of `ChannelSchedule` objects over a
 given time period (from up to 30 days ago).
 
 ```py
 >>> from beeb.nav import ChannelListings
 >>> ChannelListings.from_channel_name("r4")
-ChannelListings for BBC Radio 4 from 2021-02-16 to 2021-03-17 (30 days)
+ChannelListings for BBC Radio 4 from 2021-02-17 to 2021-03-18 (30 days)
 ```
 
-- (TODO: async requests for these listings)
+The schedules are stored as a chronological list in the `ChannelListings.schedules` attribute
+
+```py
+>>> from beeb.nav import ChannelListings
+>>> l = ChannelListings.from_channel_name("r4")
+ChannelListings for BBC Radio 4 from 2021-02-17 to 2021-03-18 (30 days)
+>>> l.schedules[0]
+ChannelSchedule for BBC Radio 4 on 2021-02-17
+```

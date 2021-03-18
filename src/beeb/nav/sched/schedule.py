@@ -1,9 +1,12 @@
-import requests
+import httpx
 import re
 from bs4 import BeautifulSoup as BS
 from ..channel_ids import ChannelPicker
 from ...time import parse_abs_from_rel_date, cal_path, parse_date_range
+from ...share import batch_multiprocess_with_return
+from .async_utils import fetch_schedules
 from datetime import datetime
+from functools import partial
 
 __all__ = ["ChannelSchedule", "ChannelListings", "Broadcast"]
 
@@ -33,17 +36,16 @@ class ChannelSchedule(RemoteMixIn):
 
     common_url_prefix = "https://www.bbc.co.uk/schedules/"
 
-    def __init__(self, channel_id, date=None):
-        print(f"Creating {channel_id} schedule on {date}")
+    def __init__(self, channel_id, date=None, defer_pull=False):
         self.channel_id = channel_id
         self.date = date
+        self.defer_pull = defer_pull
         try:
             self.channel
         except Exception as e:
             raise e  # channel ID is invalid, don't accept
         self.base_url = f"{self.common_url_prefix}{self.channel_id}"
         self.parse_schedule()
-        print(f"Created {channel_id} schedule on {date}")
 
     @property
     def date_repr(self):
@@ -59,22 +61,46 @@ class ChannelSchedule(RemoteMixIn):
         ch = ChannelPicker.by_name(name, must_exist=True)
         return cls(ch.channel_id, date=date)
 
-    def parse_schedule(self, drop_next_day_broadcasts=True):
+    @property
+    def ymd_path(self):
+        return "/".join(cal_path(self.date, as_tuple=True)) if self.date else None
+
+    @property
+    def sched_url(self):
+        return f"{self.base_url}{'/' + self.ymd_path if self.date else ''}"
+
+    def parse_schedule(self):
         if self.date is None:
             self.date = parse_abs_from_rel_date()
-        ymd_path = "/".join(cal_path(self.date, as_tuple=True)) if self.date else None
-        sched_url = f"{self.base_url}{'/' + ymd_path if self.date else ''}"
-        r = requests.get(sched_url)
+        if not self.defer_pull:
+            # deferred for async procedure
+            self.pull_and_parse()
+
+    def pull_and_parse(self):
+        r = httpx.get(self.sched_url)
         r.raise_for_status()
-        self.soup = BS(r.content.decode(), features="html5lib")
-        self.broadcasts = [
-            Broadcast.from_soup(b) for b in self.soup.select(".broadcast")
+        self.boil_broadcasts(r.content.decode())
+
+    def boil_broadcasts(self, soup=None, raw=True, return_broadcasts=False):
+        "Populate `.broadcasts` attribute with a list parsed from `soup`"
+        if raw:
+            # Prepare the soup from raw HTML
+            if not soup:
+                # Retrieve soup from frozen (async fetch put it there)
+                soup = self.frozen_soup
+            soup = BS(soup, features="html5lib")
+        broadcasts = [
+            Broadcast.from_soup(b) for b in soup.select(".broadcast")
         ]
-        if drop_next_day_broadcasts:
-            self.broadcasts = [
-                b for b in self.broadcasts
-                if (b.time.year, b.time.month, b.time.day) == self.ymd
-            ]
+        # After parsing, filter out the next day's results (deduplicate listings)
+        broadcasts = [
+            b for b in broadcasts
+            if (b.time.year, b.time.month, b.time.day) == self.ymd
+        ]
+        if return_broadcasts:
+            return broadcasts
+        else:
+            self.broadcasts = broadcasts
 
     def __repr__(self):
         return f"ChannelSchedule for {self.channel.title} on {self.date}"
@@ -166,17 +192,51 @@ class ChannelListings(RemoteMixIn):
         self.channel_id = channel_id
         from_date, to_date, n_days = parse_date_range(from_date, to_date, n_days)
         self.from_date, self.to_date, self.n_days = from_date, to_date, n_days
-        self.schedules = self.make_schedules() # includes channel ID error handling
+        self.schedules = self.make_schedules()
+        self.fetch_schedules()
+
+    @property
+    def urlset(self):
+        "Generator of URLs for async fetching"
+        return (s.sched_url for s in self.schedules)
+
+    def make_schedule(self, date, defer_pull=True):
+        "Create schedule object; includes channel ID error handling"
+        return ChannelSchedule(self.channel_id, date=date, defer_pull=defer_pull)
+
+    def make_schedules(self, defer_pull=True):
+        """
+        Make and return a list of ChannelSchedule objects and pull their
+        URLs collectively in an efficient async procedure (not seriallly).
+        """
+        return [
+            self.make_schedule(
+                parse_abs_from_rel_date(self.from_date, ymd_ago=(0,0,i)),
+                defer_pull=defer_pull
+            )
+            for i in range(self.n_days)
+        ]
 
 
-    def make_schedules(self):
-        schedules = []
-        for i in range(self.n_days):
-            ymd_shift = (0, 0, i)
-            d = parse_abs_from_rel_date(self.from_date, ymd_ago=ymd_shift)
-            s = ChannelSchedule(self.channel_id, date=d)
-            schedules.append(s)
-        return schedules
+    def fetch_schedules(self, verbose=False):
+        fetch_schedules(self.urlset, self.schedules)
+        self.boil_all_schedules(verbose=verbose)
+
+    def boil_all_schedules(self, verbose=False):
+        recipe_list = [
+            partial(s.boil_broadcasts, return_broadcasts=True)
+            for s in self.schedules
+        ]
+        # Batch the soup parsing on all cores then sort to regain chronological order
+        all_scheduled_broadcasts = sorted(
+            batch_multiprocess_with_return(
+                recipe_list, show_progress=verbose, tqdm_desc="Boiling schedules..."
+            ),
+            key=lambda b: b[0].time
+        )
+        for s, b in zip(self.schedules, all_scheduled_broadcasts):
+            s.broadcasts = b
+
 
     @classmethod
     def from_channel_name(cls, name, from_date=None, to_date=None, n_days=None):
