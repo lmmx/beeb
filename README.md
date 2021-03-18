@@ -98,7 +98,7 @@ ChannelListings follows the same interface as ChannelSchedule (they share a comm
 to avoid too much parameter passing).
 
 
-<details><summary>Click here for an example of a listings query</summary>
+<details><summary>Click here for examples of listings queries</summary>
 
 <p>
 
