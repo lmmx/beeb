@@ -40,7 +40,7 @@ object-oriented Python.
 
 A `ChannelSchedule` stores a single day's listings, for a single channel.
 
-<details><summary>Click here for more info on ChannelSchedule</summary>
+<details><summary>Click here for basic info on ChannelSchedule</summary>
 
 <p>
 
@@ -115,8 +115,12 @@ These ChannelSchedule objects can be used to find programmes:
 
 </details>
 
-As well as schedules for a single day, _beeb_ has `ChannelListings`, a collection of `ChannelSchedule` objects over a
+`ChannelListings` are a collection of `ChannelSchedule` objects over a
 given time period (from up to 30 days ago).
+
+<details><summary>Click here for basic info on ChannelListings</summary>
+
+<p>
 
 The schedules are loaded asynchronously and then their HTML is parsed on all CPU cores (fast!)
 
@@ -143,7 +147,12 @@ ChannelListings follows the same interface as ChannelSchedule (they share a comm
 to avoid too much parameter passing).
 
 
-<details><summary>Click here for examples of listings queries</summary>
+</p>
+
+</details>
+
+
+<details><summary>Click here for examples of ChannelListings queries</summary>
 
 <p>
 
