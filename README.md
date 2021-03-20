@@ -6,12 +6,12 @@ A modern interface to the BBC Sounds radio catalogue.
 
 ## Motivation
 
-This library is a light alternative to
+_beeb_ is a light alternative to
 [`get_iplayer`](https://github.com/get-iplayer/get_iplayer/)
 (10,000 lines of Perl)
 and
 [`youtube-dl`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/bbc.py)
-(almost 800 different targeted sites).
+(750+ compatible sites).
 
 These libraries aim to be deep and broad, `beeb` just aims to be specific and quick,
 handling common use cases (scheduling and download links) clearly, in nicely
