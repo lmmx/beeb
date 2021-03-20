@@ -2,6 +2,7 @@ from .serialisation import JsonHandler
 
 __all__ = ["EpisodePidJson", "MediasetJson"]
 
+
 class EpisodePidJson(JsonHandler):
     "Episode metadata JSON helper"
     pid_property_name = "episode_pid"
@@ -33,7 +34,7 @@ class MediasetJson(JsonHandler):
             # JSON dict not cleared if filtering threw a KeyError
             if ms_json.get("result") == "selectionunavailable":
                 raise ValueError(f"Bad mediaset response from {episode_pid}")
-            raise e # Other error types to catch (could wrap/re-throw via base class?)
+            raise e  # Other error types to catch (could wrap/re-throw via base class?)
         return ms_json
 
     @property

@@ -8,14 +8,17 @@ from .serialisation import HtmlHandler
 
 __all__ = ["EpisodeListingsHtml"]
 
+
 class Series:
     base_url = "https://www.bbc.co.uk/programmes/"
+
     def __init__(self, series_pid):
         self.pid = series_pid
 
     @property
     def url(self):
         return f"{self.base_url}{self.pid}"
+
 
 class Paginator:
     # TODO: extend this to return all episode dates and PIDs if that's desirable?
@@ -24,7 +27,7 @@ class Paginator:
 
     def reset_paginator(self, start_page_num=None):
         if self.start_page_num is start_page_num is self.current_page_num:
-            pass # Nothing to do
+            pass  # Nothing to do
         else:
             if start_page_num is not None:
                 self.start_page_num = start_page_num
@@ -44,6 +47,25 @@ class Paginator:
     def paginate_until_ymd(self):
         return self._pg_ymd_lim
 
+
+class Episode:
+    def __init__(self, pid, title, ymd):
+        self.pid = pid
+        self.title = title
+        self.ymd = ymd
+
+    @classmethod
+    def from_soup_node(cls, soup_node):
+        pid = soup_node.attrs["data-pid"]
+        episode_title = soup_node.select_one(".programme__titles").text
+        try:
+            epi_d, epi_m, epi_y = map(int, episode_title.split("/"))
+            epi_ymd = (epi_y, epi_m, epi_d)
+        except Exception as e:
+            raise ValueError(f"Failed to parse {episode_title=} as a date")
+        return cls(pid=pid, title=episode_title, ymd=epi_ymd)
+
+
 class EpisodesDict(dict):
     """
     dict of (year, month, day) tuple keys to episode PID values for
@@ -52,39 +74,54 @@ class EpisodesDict(dict):
     Check all available dates until matching the (year, month, day) tuple
     if provided as `paginate_until_ymd` (note year must be full year),
     and upon doing so remove all other keys and return the singleton dict.
+
+    Note: without a `paginate_until_ymd` value, the dict for a single page
+    will be returned (this is by design, avoiding recursive pagination).
     """
-    def __init__(self, episode_soups, series_pid, page_num=1, paginate_until_ymd=None):
+
+    def __init__(
+        self,
+        episode_soups,
+        series_pid,
+        max_page_num,
+        start_page_num=1,
+        paginate_until_ymd=None,
+    ):
+        self.series_pid = series_pid
+        self.start_page_num = start_page_num
+        self.max_page_num = max_page_num
+        self.paginate_until_ymd = paginate_until_ymd
+        self.parse_soups(episode_soups)
+
+    def parse_soups(self, episode_soups):
         if episode_soups:
             for epinode in episode_soups:
-                episode_pid = epinode.attrs["data-pid"]
-                episode_title = epinode.select_one(".programme__titles").text
-                try:
-                    epi_d, epi_m, epi_y = map(int, episode_title.split("/"))
-                    epi_ymd = (epi_y, epi_m, epi_d)
-                except Exception as e:
-                    raise ValueError(f"Failed to parse {episode_title=} as a date")
-                self.update({epi_ymd: episode_pid})
+                e = Episode.from_soup_node(epinode)
+                self.update({e.ymd: e.pid})
         else:
             raise ValueError(f"No episodes found at {url=}")
-        if paginate_until_ymd and paginate_until_ymd not in self:
+        if self.paginate_until_ymd and self.paginate_until_ymd not in self:
             # cover the rest of the pages up to and including `max_page_num`
-            for paginate in range(page_num + 1, max_page_num + 1):
-                paginate_ep_dict = get_episode_dict(series_pid, paginate)
+            for paginate in range(self.start_page_num + 1, self.max_page_num + 1):
+                paginate_ep_dict = EpisodeListingsHtml(
+                    series_pid=self.series_pid, page_num=paginate
+                ).episodes_dict
                 # TODO conditional update here if returning all
                 self.update(paginate_ep_dict)
-                if paginate_until_ymd in self:
+                if self.paginate_until_ymd in self:
                     # Clear all other entries and break to return the singleton dict
-                    self.filter(paginate_until_ymd)
+                    self.prune(self.paginate_until_ymd)
                     break
-                if page_num == max_page_num:
-                    raise ValueError(f"{paginate_until_ymd} not found (reached {page_num})")
-        elif paginate_until_ymd:
-            self.filter(paginate_until_ymd)
+                if paginate == self.max_page_num:
+                    msg = f"{self.paginate_until_ymd} not found (reached {page_num})"
+                    raise ValueError(msg)
+        elif self.paginate_until_ymd:
+            self.prune(self.paginate_until_ymd)
 
-    def filter(self, k):
-        "Replace dict with the singleton entry for a given key, `k`."
+    def prune(self, k):
+        "Delete all dict keys except the singleton entry for a given key, `k`."
         if k not in self:
-            raise KeyError("Cannot filter on this key: {k=}")
+            raise KeyError("Cannot prune on this key: {k=}")
         singleton_dict = {k: self[k]}
         self.clear()
         self.update(singleton_dict)
@@ -94,19 +131,21 @@ class EpisodesDict(dict):
         return cls(
             episode_soups=ep_lst.episode_soups,
             series_pid=ep_lst.series.pid,
-            page_num=ep_lst.start_page_num,
-            paginate_until_ymd=ep_lst.paginate_until_ymd
+            max_page_num=ep_lst.max_page_num,
+            start_page_num=ep_lst.start_page_num,
+            paginate_until_ymd=ep_lst.paginate_until_ymd,
         )
+
 
 class EpisodeListingsHtml(Paginator, HtmlHandler):
     def __init__(
-        self, series_pid, page_num=1, paginate_until_ymd=None,
-        defer_pull=False
+        self, series_pid, page_num=1, paginate_until_ymd=None, defer_pull=False
     ):
         self.series = Series(series_pid)
-        self.reset_paginator(page_num) # initialise paginator
+        self.reset_paginator(page_num)  # initialise paginator
         self.set_paginate_ymd_limit(paginate_until_ymd)
-        super().__init__(defer_pull=defer_pull)
+        if not defer_pull:
+            self.pull()
         self.episodes_dict = EpisodesDict.from_episode_listings(self)
 
     @property

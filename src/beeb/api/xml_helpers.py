@@ -5,8 +5,10 @@ from math import ceil
 
 __all__ = ["MpdXml"]
 
+
 class MpdXsdNamespaceMixIn:
     "Helper to parse MPD XML's XSD namespace."
+
     @property
     def namespace_xpath(self):
         """

@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup as BS
 
 __all__ = ["XmlHandler", "JsonHandler", "HtmlHandler"]
 
+
 class PullMixIn:
     def pull(self):
         resp = httpx.get(self.url)
@@ -13,13 +14,15 @@ class PullMixIn:
         data = self.reader_func(resp.content.decode())
         self.handle(data)
 
+
 class SerialisedHandler(PullMixIn, dict):
     """
     Serialisation helper providing a common interface for XML and JSON.
     Subclasses must provide `reader_func` to parse the decoded contents
-    of GET request to `self.url`, 
+    of GET request to `self.url`,
     """
-    clear_on_filter = False # override in subclass to add self-unloading behaviour
+
+    clear_on_filter = False  # override in subclass to add self-unloading behaviour
 
     def filter(self, filter_key_path=None):
         if self.filter_key_path and filter_key_path is None:
@@ -28,12 +31,13 @@ class SerialisedHandler(PullMixIn, dict):
         # Only clear the dict after successfully filtering. This enables
         # higher level error handling to check the data without re-pulling
         if self.clear_on_filter:
-            self.clear() # The JSON dict will be empty if filter succeeded
+            self.clear()  # The JSON dict will be empty if filter succeeded
         return filtered
 
 
 class XmlHandler(SerialisedHandler):
     "XML handler base class."
+
     def __init__(self, url, defer_pull=False, filter_key_path=None):
         self.url = url
         self.filter_key_path = filter_key_path
@@ -41,13 +45,12 @@ class XmlHandler(SerialisedHandler):
             self.pull()
 
     def handle(self, data):
-        self.root = data # root ET.Element
-        self.update(data.attrib) # load ET.Element.attrib dict
+        self.root = data  # root ET.Element
+        self.update(data.attrib)  # load ET.Element.attrib dict
 
     @staticmethod
     def reader_func(data):
         return ET.fromstring(data)
-
 
 
 class JsonHandler(SerialisedHandler):
@@ -55,7 +58,8 @@ class JsonHandler(SerialisedHandler):
     JSON handler base class. Subclasses must set `pid_property_name`
     (to clearly distinguish the different PIDs) and a property `url`.
     """
-    clear_on_filter = True # override in subclass to remove self-unloading behaviour
+
+    clear_on_filter = True  # override in subclass to remove self-unloading behaviour
 
     def __init__(self, pid, defer_pull=False, filter_key_path=None):
         setattr(self, self.pid_property_name, pid)
@@ -72,15 +76,12 @@ class JsonHandler(SerialisedHandler):
     def reader_func(data):
         return loads(data)
 
+
 class HtmlHandler(PullMixIn):
     """
-    Serialisation helper providing a common interface for XML and JSON.
     Subclasses must provide `reader_func` to parse the decoded contents
-    of GET request to `self.url`, 
+    of GET request to `self.url`,
     """
-    def __init__(self, defer_pull=False):
-        if not defer_pull:
-            self.pull()
 
     def pull(self):
         resp = httpx.get(self.url)
@@ -89,9 +90,8 @@ class HtmlHandler(PullMixIn):
         self.handle(data)
 
     def handle(self, data):
-        self.page = data # store BeautifulSoup document
+        self.page = data  # store BeautifulSoup document
 
     @staticmethod
     def reader_func(data):
         return BS(data, features="html5lib")
-
