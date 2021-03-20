@@ -10,10 +10,12 @@ This library is a light alternative to
 [`get_iplayer`](https://github.com/get-iplayer/get_iplayer/)
 (10,000 lines of Perl)
 and
-[`youtube-dl`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/bbc.py).
+[`youtube-dl`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/bbc.py)
+(almost 800 different targeted sites).
 
-These libraries aim to be all things to all people, `beeb` just aims to be quick,
-and handle common use cases clearly, in nicely object-oriented Python.
+These libraries aim to be deep and broad, `beeb` just aims to be specific and quick,
+handling common use cases (scheduling and download links) clearly, in nicely
+object-oriented Python.
 
 ## Requirements
 
