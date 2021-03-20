@@ -19,7 +19,7 @@ object-oriented Python.
 
 ## Requirements
 
-<details><summary>Click here to show requirements</summary>
+<details><summary>❧ Click here to show requirements</summary>
 
 <p>
 
@@ -40,7 +40,7 @@ object-oriented Python.
 
 A `ChannelSchedule` stores a single day's listings, for a single channel.
 
-<details><summary>Click here for basic info on ChannelSchedule</summary>
+<details><summary>❧ Click here for basic info on ChannelSchedule</summary>
 
 <p>
 
@@ -78,7 +78,7 @@ These ChannelSchedule objects can be used to find programmes:
 
 </details>
 
-<details><summary>Click here for more complex ChannelSchedule examples</summary>
+<details><summary>❧ Click here for more complex ChannelSchedule examples</summary>
 
 <p>
 
@@ -118,7 +118,7 @@ These ChannelSchedule objects can be used to find programmes:
 `ChannelListings` are a collection of `ChannelSchedule` objects over a
 given time period (from up to 30 days ago).
 
-<details><summary>Click here for basic info on ChannelListings</summary>
+<details><summary>❧ Click here for basic info on ChannelListings</summary>
 
 <p>
 
@@ -152,7 +152,7 @@ to avoid too much parameter passing).
 </details>
 
 
-<details><summary>Click here for examples of ChannelListings queries</summary>
+<details><summary>❧ Click here for examples of ChannelListings queries</summary>
 
 <p>
 
