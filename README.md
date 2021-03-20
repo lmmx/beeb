@@ -40,6 +40,10 @@ object-oriented Python.
 
 A `ChannelSchedule` stores a single day's listings, for a single channel.
 
+<details><summary>Click here for more info on ChannelSchedule</summary>
+
+<p>
+
 - National, local, regional channels can be selected by ID or short name
 - The schedule with today's date is loaded by default
 
@@ -70,7 +74,11 @@ These ChannelSchedule objects can be used to find programmes:
 ```
 
 
-<details><summary>Click here for more complex examples</summary>
+</p>
+
+</details>
+
+<details><summary>Click here for more complex ChannelSchedule examples</summary>
 
 <p>
 
