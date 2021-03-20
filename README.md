@@ -78,6 +78,11 @@ These ChannelSchedule objects can be used to find programmes:
 As well as schedules for a single day, _beeb_ has `ChannelListings`, a collection of `ChannelSchedule` objects over a
 given time period (from up to 30 days ago).
 
+The schedules are loaded asynchronously and then their HTML is parsed on all CPU cores (fast!)
+
+No interface is currently implemented for multiple channels (as I don't particularly need it), but
+`beeb.nav.ChannelPicker` gives all available channels if you wanted to iterate over them.
+
 ```py
 >>> from beeb.nav import ChannelListings
 >>> ChannelListings.from_channel_name("r4")
