@@ -4,6 +4,36 @@
 
 A modern interface to the BBC Sounds radio catalogue.
 
+## Motivation
+
+This library is a light alternative to
+[`get_iplayer`](https://github.com/get-iplayer/get_iplayer/)
+(10,000 lines of Perl)
+and
+[`youtube-dl`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/bbc.py).
+
+These libraries aim to be all things to all people, `beeb` just aims to be quick,
+and handle common use cases clearly, in nicely object-oriented Python.
+
+## Requirements
+
+<details><summary>Click here to show requirements</summary>
+
+<p>
+
+- BeautifulSoup
+- HTTPX
+  - A `requests`-like API with async and HTTP/2 support
+- aiostream
+  - Asynchronous requests to speed up channel listings retrieval
+- tqdm
+  - Gives the option to show progress when multiprocessing channel listings
+- `more_itertools`
+
+</p>
+
+</details>
+
 ## Usage
 
 A `ChannelSchedule` stores a single day's listings, for a single channel.
