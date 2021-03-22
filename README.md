@@ -240,3 +240,6 @@ The following functions handle this in `beeb.api`:
 - `final_m4s_link_from_episode_pid`
   - a wrapper to access the `last_m4s_link` attribute of the `MpdXml` class constructed with the `from_episode_pid` class method
     after obtaining the episode PID from the episode dict
+
+You may very well prefer to construct the objects and handle the attributes involved yourself,
+these are given as 'recipes' to make it clear how to use beeb's functionality.
