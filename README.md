@@ -36,7 +36,7 @@ object-oriented Python.
 
 </details>
 
-## Usage
+## Schedule handling
 
 A `ChannelSchedule` stores a single day's listings, for a single channel.
 
@@ -218,3 +218,25 @@ to avoid too much parameter passing).
 </p>
 
 </details>
+
+## Stream handling
+
+Episodes are downloaded from BBC Sounds as M4S (MPEG-DASH streams). There is a header `.dash` file
+and then multiple `.dash` files, and if you have all of these you can build a MP4 audio file.
+
+> As far as I know the access to these is geo-fenced, i.e. you must
+> be in the UK to download but this may vary between programmes/stations.
+
+The most directly useful functions (which I've needed when interacting with BBC Sounds API) are
+those to obtain the M4S links: you only need the final one to construct the full set of URLs
+to obtain a complete MP4.
+
+The following functions handle this in `beeb.api`:
+
+- `get_episode_dict`
+  - a trivial wrapper to access the `episodes_dict` attribute of `EpisodeListingsHtml`
+- `final_m4s_link_from_series_pid`
+  - a wrapper to access the `last_m4s_link` attribute of the `MpdXml` class constructed with the `from_episode_pid` class method
+- `final_m4s_link_from_episode_pid`
+  - a wrapper to access the `last_m4s_link` attribute of the `MpdXml` class constructed with the `from_episode_pid` class method
+    after obtaining the episode PID from the episode dict
