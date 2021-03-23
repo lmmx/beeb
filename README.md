@@ -244,6 +244,10 @@ The following functions handle this in `beeb.api`:
 - `final_m4s_link_from_episode_pid`
   - a wrapper to access the `last_m4s_link` attribute of the `MpdXml` class constructed with the `from_episode_pid` class method
     after obtaining the episode PID from the episode dict
+- `get_series_pid_by_name`
+  - a wrapper to access the `filtered` attribute of a `EpisodeMetadataPidJson` object
+    constructed with the `get_series_pid` class method.
+  - technically it's "by series title and station name" (the arguments are in this order)
 
 You may very well prefer to construct the objects and handle the attributes involved yourself,
 these are given as 'recipes' to make it clear how to use beeb's functionality.

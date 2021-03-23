@@ -1,16 +1,28 @@
 from .serialisation import JsonHandler
 
-__all__ = ["EpisodePidJson", "MediasetJson"]
+__all__ = ["EpisodePlaylistPidJson", "EpisodeMetadataPidJson", "MediasetJson"]
 
 
-class EpisodePidJson(JsonHandler):
-    "Episode metadata JSON helper"
+class EpisodePlaylistPidJson(JsonHandler):
+    "Episode playlist metadata JSON helper"
     pid_property_name = "episode_pid"
 
     @property
     def url(self):
         return f"https://www.bbc.co.uk/programmes/{self.episode_pid}/playlist.json"
 
+class EpisodeMetadataPidJson(JsonHandler):
+    "Episode metadata JSON helper"
+    pid_property_name = "episode_pid"
+
+    @property
+    def url(self):
+        return f"https://www.bbc.co.uk/programmes/{self.episode_pid}.json"
+
+    @classmethod
+    def get_series_pid(cls, series_pid):
+        series_pid_kp = ["programme", "parent", "programme", "pid"]
+        return cls(series_pid, filter_key_path=series_pid_kp).filtered
 
 class MediasetJson(JsonHandler):
     "MPEG-DASH stream manifest JSON helper"
@@ -27,7 +39,7 @@ class MediasetJson(JsonHandler):
     @classmethod
     def from_episode_pid(cls, episode_pid, defer_pull=False, filter_key_path=None):
         vpid_key_path = ["defaultAvailableVersion", "pid"]
-        vpid = EpisodePidJson(episode_pid, filter_key_path=vpid_key_path).filtered
+        vpid = EpisodePlaylistPidJson(episode_pid, filter_key_path=vpid_key_path).filtered
         try:
             ms_json = cls(vpid, defer_pull=defer_pull, filter_key_path=filter_key_path)
         except KeyError as e:

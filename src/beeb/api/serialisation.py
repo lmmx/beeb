@@ -9,7 +9,7 @@ __all__ = ["XmlHandler", "JsonHandler", "HtmlHandler"]
 
 class PullMixIn:
     def pull(self):
-        resp = get(self.url, raise_for_status=True)
+        resp = GET(self.url, raise_for_status=True)
         data = self.reader_func(resp.content.decode())
         self.handle(data)
 

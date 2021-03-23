@@ -1,10 +1,13 @@
 from .xml_helpers import MpdXml
 from .html_helpers import EpisodeListingsHtml
+from .json_helpers import EpisodeMetadataPidJson
+from ..nav.sched import ChannelListings
 
 __all__ = [
     "get_episode_dict",
     "final_m4s_link_from_series_pid",
     "final_m4s_link_from_episode_pid",
+    "get_series_pid_by_name"
 ]
 
 
@@ -41,3 +44,17 @@ def get_episode_dict(series_pid, page_num=1, paginate_until_ymd=None):
     and upon doing so remove all other keys and return the singleton dict.
     """
     return EpisodeListingsHtml(series_pid, page_num, paginate_until_ymd).episodes_dict
+
+def get_series_pid_by_name(series_name, station_name, n_days=2):
+    """
+    Given the name of a series and a channel, return the PID for the series.
+    """
+    listings = ChannelListings.from_channel_name("r4", n_days=n_days)
+    try:
+        episode = listings.get_broadcast_by_title(series_name)
+    except ValueError as e:
+        msg = f"No programme '{series_name}' found, try increasing {n_days=}"
+        raise NotImplementedError(msg)
+    finally:
+        series_pid = EpisodeMetadataPidJson.get_series_pid(episode.pid)
+    return series_pid
