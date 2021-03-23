@@ -221,6 +221,10 @@ to avoid too much parameter passing).
 
 ## Stream handling
 
+<details><summary>❧ Click here for the basics of stream handling</summary>
+
+<p>
+
 Episodes are downloaded from BBC Sounds as M4S (MPEG-DASH streams). There is a header `.dash` file
 and then multiple `.dash` files, and if you have all of these you can build a MP4 audio file.
 
@@ -243,3 +247,7 @@ The following functions handle this in `beeb.api`:
 
 You may very well prefer to construct the objects and handle the attributes involved yourself,
 these are given as 'recipes' to make it clear how to use beeb's functionality.
+
+</p>
+
+</details>
