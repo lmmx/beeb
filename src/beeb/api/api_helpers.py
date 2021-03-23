@@ -1,13 +1,15 @@
 from .xml_helpers import MpdXml
 from .html_helpers import EpisodeListingsHtml
 from .json_helpers import EpisodeMetadataPidJson
-from ..nav.sched import ChannelListings
+from ..nav.sched import ChannelListings, SeriesCatalogue
 
 __all__ = [
     "get_episode_dict",
     "final_m4s_link_from_series_pid",
     "final_m4s_link_from_episode_pid",
-    "get_series_pid_by_name"
+    "get_series_pid_by_name",
+    "get_series_dict",
+    "get_genre_series_dict"
 ]
 
 
@@ -49,7 +51,7 @@ def get_series_pid_by_name(series_name, station_name, n_days=2):
     """
     Given the name of a series and a channel, return the PID for the series.
     """
-    listings = ChannelListings.from_channel_name("r4", n_days=n_days)
+    listings = ChannelListings.from_channel_name(station_name, n_days=n_days)
     try:
         episode = listings.get_broadcast_by_title(series_name)
     except ValueError as e:
@@ -58,3 +60,21 @@ def get_series_pid_by_name(series_name, station_name, n_days=2):
     finally:
         series_pid = EpisodeMetadataPidJson.get_series_pid(episode.pid)
     return series_pid
+
+def get_series_dict(station_name, with_genre=False, n_days=1):
+    """
+    Given the name of a channel, return a dict of series PIDs and series titles.
+    If `with_genre` is True, make the value a 2-tuple of (title, genre).
+    """
+    return SeriesCatalogue(station_name, with_genre, n_days)
+
+def get_genre_series_dict(station_name, n_days=1):
+    series_dict = get_series_dict(station_name, with_genre=True, n_days=n_days)
+    genre_dict = {}
+    for genre_title, series_pid_and_title in (
+        [v[1], (k, v[0])]
+        for (k,v) in series_dict.items()
+    ):
+        genre_dict.setdefault(genre_title, [])
+        genre_dict[genre_title].append(series_pid_and_title)
+    return genre_dict

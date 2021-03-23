@@ -80,3 +80,8 @@ class ChannelListings(ScheduleSearchMixIn, RemoteMixIn):
             f"ChannelListings for {self.channel.title} "
             f"from {self.from_date} to {self.to_date} ({self.n_days} days)"
         )
+
+    @property
+    def all_broadcasts(self):
+        "Presuming the schedules are already boiled (i.e. parsed), enumerate broadcasts"
+        return [b for s in self.schedules for b in s.broadcasts]

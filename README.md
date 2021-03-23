@@ -219,6 +219,111 @@ to avoid too much parameter passing).
 
 </details>
 
+From the ChannelListings you can build `SeriesCatalogue` dictionaries,
+by inspecting the parent series IDs of each of the broadcasts in the schedules
+within the listings.
+
+<details><summary>❧ Click here for SeriesCatalogue examples</summary>
+
+<p>
+
+To obtain a `SeriesCatalogue` with just series PIDs and titles:
+
+```py
+beeb.api.get_series_dict("r4", n_days=1)
+```
+⇣
+```STDOUT
+{'b00cs19l': 'Midnight News',
+ 'm000tcbd': 'One Two Three Four - The Beatles In Time by Craig Brown',
+ 'b006qfvv': 'Shipping Forecast',
+ 'b006s54y': 'Selection of BBC World Service Programmes',
+ 'b007rhyn': 'News Briefing',
+ 'b006qmpj': 'Prayer for the Day',
+ 'b006qj8q': 'Farming Today',
+ 'b01s6xyk': 'Tweet of the Day',
+ 'b006qj9z': 'Today',
+ 'm000t6qm': 'Lessons On A Crisis',
+ 'b007qlvb': "Woman's Hour",
+ 'm000tcbk': 'Meet Me at the Museum',
+ 'm000t4sz': 'The Real Internet Giants',
+ 'm000t4t5': "Laura Barton's Notes on Music",
+ 'b04fc120': 'News Summary',
+ 'm000tcbx': 'White Fang by Jack London',
+ 'b006qps9': 'You and Yours',
+ 'b007rn05': 'Weather',
+ 'b006qptc': 'World at One',
+ 'm000tcc6': 'Outsiders',
+ 'b006qpgr': 'The Archers',
+ 'b04xxp0g': 'Drama',
+ 'b01mk3f8': 'Short Cuts',
+ 'b006r4wn': 'Costing the Earth',
+ 'b006tgy1': 'Law in Action',
+ 'b006v8jn': 'A Good Read',
+ 'b006qskw': 'PM',
+ 'b006qjxt': "Six O'Clock News",
+ 'm000ssk8': 'Series 4',
+ 'b006qsq5': 'Front Row',
+ 'm000lhkv': 'The Whisperer in Darkness',
+ 'b006qxww': 'In Touch',
+ 'b019dl1b': 'Inside Health',
+ 'b006qtl3': 'The World Tonight',
+ 'p04x5pd7': 'Fortunately... with Fi and Jane',
+ 'b006qtqd': 'Today in Parliament'}
+```
+
+- Note the bug where some series are named things like "Series 4"! TODO: fix
+
+To obtain a `SeriesCatalogue` with genres:
+
+```py
+beeb.api.get_genre_series_dict("r4", n_days=1)
+```
+⇣
+```STDOUT
+{'News': [('b00cs19l', 'Midnight News'),
+          ('b007rhyn', 'News Briefing'),
+          ('b006qj9z', 'Today'),
+          ('b04fc120', 'News Summary'),
+          ('b006qptc', 'World at One'),
+          ('b006qskw', 'PM'),
+          ('b006qjxt', "Six O'Clock News"),
+          ('b006qtl3', 'The World Tonight')],
+ 'Factual': [('m000tcbd',
+              'One Two Three Four - The Beatles In Time by Craig Brown'),
+             ('b006s54y', 'Selection of BBC World Service Programmes'),
+             ('m000t6qm', 'Lessons On A Crisis'),
+             ('b007qlvb', "Woman's Hour"),
+             ('m000t4sz', 'The Real Internet Giants'),
+             ('m000t4t5', "Laura Barton's Notes on Music"),
+             ('m000tcc6', 'Outsiders')],
+ 'Weather': [('b006qfvv', 'Shipping Forecast'), ('b007rn05', 'Weather')],
+ 'Religion & Ethics': [('b006qmpj', 'Prayer for the Day')],
+ 'Nature & Environment': [('b006qj8q', 'Farming Today'),
+                          ('b006r4wn', 'Costing the Earth')],
+ 'Science & Nature': [('b01s6xyk', 'Tweet of the Day')],
+ 'Drama': [('m000tcbk', 'Meet Me at the Museum'),
+           ('m000tcbx', 'White Fang by Jack London'),
+           ('b04xxp0g', 'Drama')],
+ 'Consumer': [('b006qps9', 'You and Yours')],
+ 'Soaps': [('b006qpgr', 'The Archers')],
+ 'Life Stories': [('b01mk3f8', 'Short Cuts')],
+ 'Crime & Justice': [('b006tgy1', 'Law in Action')],
+ 'Arts': [('b006v8jn', 'A Good Read')],
+ 'Comedy': [('m000ssk8', 'Series 4')],
+ 'Arts, Culture & the Media': [('b006qsq5', 'Front Row')],
+ 'Horror & Supernatural': [('m000lhkv', 'The Whisperer in Darkness')],
+ 'Disability': [('b006qxww', 'In Touch')],
+ 'Health & Wellbeing': [('b019dl1b', 'Inside Health')],
+ 'Chat': [('p04x5pd7', 'Fortunately... with Fi and Jane')],
+ 'Politics': [('b006qtqd', 'Today in Parliament')]}
+```
+
+</p>
+
+</details>
+
+
 ## Stream handling
 
 <details><summary>❧ Click here for the basics of stream handling</summary>

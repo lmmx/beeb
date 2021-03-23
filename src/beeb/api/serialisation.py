@@ -23,13 +23,20 @@ class SerialisedHandler(PullMixIn, dict):
 
     clear_on_filter = False  # override in subclass to add self-unloading behaviour
 
-    def filter(self, filter_key_path=None):
+    def filter(self, filter_key_path=None, force_preserve=False):
         if self.filter_key_path and filter_key_path is None:
             filter_key_path = self.filter_key_path
-        filtered = reduce(dict.__getitem__, filter_key_path, self)
+        if filter_key_path and type(filter_key_path) is tuple:
+            # Input is tuple of multiple key paths so output a tuple of multiple values
+            filtered = tuple(
+                reduce(dict.__getitem__, kp, self)
+                for kp in filter_key_path
+            )
+        else:
+            filtered = reduce(dict.__getitem__, filter_key_path, self)
         # Only clear the dict after successfully filtering. This enables
         # higher level error handling to check the data without re-pulling
-        if self.clear_on_filter:
+        if self.clear_on_filter and not force_preserve:
             self.clear()  # The JSON dict will be empty if filter succeeded
         return filtered
 

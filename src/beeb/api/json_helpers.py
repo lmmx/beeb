@@ -14,15 +14,38 @@ class EpisodePlaylistPidJson(JsonHandler):
 class EpisodeMetadataPidJson(JsonHandler):
     "Episode metadata JSON helper"
     pid_property_name = "episode_pid"
+    series_pid_kp = ["programme", "parent", "programme", "pid"]
+    series_title_kp = ["programme", "parent", "programme", "title"]
+    cat_kp = ["programme", "categories"] # unkeyed list here
+    filter_key_path = series_pid_kp
 
     @property
     def url(self):
         return f"https://www.bbc.co.uk/programmes/{self.episode_pid}.json"
 
     @classmethod
-    def get_series_pid(cls, series_pid):
-        series_pid_kp = ["programme", "parent", "programme", "pid"]
-        return cls(series_pid, filter_key_path=series_pid_kp).filtered
+    def get_series_pid(cls, episode_pid):
+        return cls(episode_pid, filter_key_path=cls.series_pid_kp).filtered
+
+    @classmethod
+    def get_series_pid_title(cls, episode_pid):
+        series_pid_title_kp = (cls.series_pid_kp, cls.series_title_kp)
+        return cls(episode_pid, filter_key_path=series_pid_title_kp).filtered
+
+    @classmethod
+    def get_series_pid_title_genre(cls, episode_pid):
+        j = cls(episode_pid)
+        series_pid_title_kp = (cls.series_pid_kp, cls.series_title_kp)
+        # Force preserve: don't clear the dict
+        series_pid, series_title = j.filter(
+            filter_key_path=series_pid_title_kp, force_preserve=True
+        )
+        genre_title = next(
+            c["title"]
+            for c in j.filter(j.cat_kp) # Don't force preserve: clear the dict
+            if c.get("type") == "genre"
+        )
+        return series_pid, series_title, genre_title
 
 class MediasetJson(JsonHandler):
     "MPEG-DASH stream manifest JSON helper"
