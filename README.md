@@ -233,7 +233,7 @@ To obtain a `SeriesCatalogue` with just series PIDs and titles:
 beeb.api.get_series_dict("r4", n_days=1)
 ```
 ⇣
-```STDOUT
+```py
 {'b00cs19l': 'Midnight News',
  'm000tcbd': 'One Two Three Four - The Beatles In Time by Craig Brown',
  'b006qfvv': 'Shipping Forecast',
@@ -280,7 +280,7 @@ To obtain a `SeriesCatalogue` with genres:
 beeb.api.get_genre_series_dict("r4", n_days=1)
 ```
 ⇣
-```STDOUT
+```py
 {'News': [('b00cs19l', 'Midnight News'),
           ('b007rhyn', 'News Briefing'),
           ('b006qj9z', 'Today'),
