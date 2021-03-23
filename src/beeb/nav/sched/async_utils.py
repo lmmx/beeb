@@ -6,6 +6,7 @@ from pathlib import Path
 
 __all__ = ["fetch", "process", "async_fetch_urlset", "fetch_urls"]
 
+
 async def fetch(session, url, raise_for_status=False):
     response = await session.get(str(url))
     if raise_for_status:
@@ -33,6 +34,6 @@ async def async_fetch_urlset(urls, schedules, pbar=None, verbose=False, use_http
         zs = stream.map(ys, process_data)
         return await zs
 
+
 def fetch_schedules(urls, schedules, pbar=None, verbose=False):
     return asyncio.run(async_fetch_urlset(urls, schedules, pbar, verbose))
-

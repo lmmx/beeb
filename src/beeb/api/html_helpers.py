@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup as BS
 from math import ceil
-import httpx
 from ..time.isotime import total_seconds_in_isoduration
 from .serialisation import HtmlHandler
 

@@ -1,7 +1,7 @@
 from xml.etree import ElementTree as ET
 from json import loads
 from functools import reduce
-import httpx
+from ..share.http_utils import GET
 from bs4 import BeautifulSoup as BS
 
 __all__ = ["XmlHandler", "JsonHandler", "HtmlHandler"]
@@ -9,8 +9,7 @@ __all__ = ["XmlHandler", "JsonHandler", "HtmlHandler"]
 
 class PullMixIn:
     def pull(self):
-        resp = httpx.get(self.url)
-        resp.raise_for_status()
+        resp = get(self.url, raise_for_status=True)
         data = self.reader_func(resp.content.decode())
         self.handle(data)
 
@@ -84,8 +83,7 @@ class HtmlHandler(PullMixIn):
     """
 
     def pull(self):
-        resp = httpx.get(self.url)
-        resp.raise_for_status()
+        resp = GET(self.url, raise_for_status=True)
         data = self.reader_func(resp.content.decode())
         self.handle(data)
 
