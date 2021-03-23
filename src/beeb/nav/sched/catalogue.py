@@ -35,3 +35,14 @@ class SeriesCatalogue(dict):
     @property
     def episode_titles(self):
         return (v[0] for v in self.values()) if self.genred else self.values()
+
+    @property
+    def keyed_by_genre(self):
+        genre_dict = {}
+        for genre_title, series_pid_and_title in (
+            [v[1], (k, v[0])]
+            for (k,v) in self.items()
+        ):
+            genre_dict.setdefault(genre_title, [])
+            genre_dict[genre_title].append(series_pid_and_title)
+        return genre_dict

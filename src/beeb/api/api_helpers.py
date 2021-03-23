@@ -70,11 +70,4 @@ def get_series_dict(station_name, with_genre=False, n_days=1):
 
 def get_genre_series_dict(station_name, n_days=1):
     series_dict = get_series_dict(station_name, with_genre=True, n_days=n_days)
-    genre_dict = {}
-    for genre_title, series_pid_and_title in (
-        [v[1], (k, v[0])]
-        for (k,v) in series_dict.items()
-    ):
-        genre_dict.setdefault(genre_title, [])
-        genre_dict[genre_title].append(series_pid_and_title)
-    return genre_dict
+    return series_dict.keyed_by_genre
