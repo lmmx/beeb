@@ -219,23 +219,22 @@ to avoid too much parameter passing).
 
 </details>
 
-From the ChannelListings you can build `SeriesCatalogue` dictionaries,
-by inspecting the parent series IDs of each of the broadcasts in the schedules
+From the ChannelListings you can build `ProgrammeCatalogue` dictionaries,
+by inspecting the parent programme IDs of each of the broadcasts in the schedules
 within the listings.
 
-<details><summary>❧ Click here for SeriesCatalogue examples</summary>
+<details><summary>❧ Click here for ProgrammeCatalogue examples</summary>
 
 <p>
 
-To obtain a `SeriesCatalogue` with just series PIDs and titles:
+To obtain a `ProgrammeCatalogue` with just programme PIDs and titles:
 
 ```py
-beeb.api.get_series_dict("r4", n_days=1)
+beeb.api.get_programme_dict("r4", n_days=1)
 ```
 ⇣
 ```py
 {'b00cs19l': 'Midnight News',
- 'm000tcbd': 'One Two Three Four - The Beatles In Time by Craig Brown',
  'b006qfvv': 'Shipping Forecast',
  'b006s54y': 'Selection of BBC World Service Programmes',
  'b007rhyn': 'News Briefing',
@@ -243,80 +242,140 @@ beeb.api.get_series_dict("r4", n_days=1)
  'b006qj8q': 'Farming Today',
  'b01s6xyk': 'Tweet of the Day',
  'b006qj9z': 'Today',
- 'm000t6qm': 'Lessons On A Crisis',
+ 'b09zgd6y': 'Chinese Characters',
  'b007qlvb': "Woman's Hour",
- 'm000tcbk': 'Meet Me at the Museum',
- 'm000t4sz': 'The Real Internet Giants',
- 'm000t4t5': "Laura Barton's Notes on Music",
+ 'm0002rjm': "Alexei Sayle's The Absence of Normal",
  'b04fc120': 'News Summary',
- 'm000tcbx': 'White Fang by Jack London',
  'b006qps9': 'You and Yours',
  'b007rn05': 'Weather',
  'b006qptc': 'World at One',
- 'm000tcc6': 'Outsiders',
  'b006qpgr': 'The Archers',
  'b04xxp0g': 'Drama',
- 'b01mk3f8': 'Short Cuts',
- 'b006r4wn': 'Costing the Earth',
- 'b006tgy1': 'Law in Action',
- 'b006v8jn': 'A Good Read',
+ 'b006qjnv': 'Money Box',
+ 'b019dl1b': 'Inside Health',
+ 'm000s2kt': 'Sideways',
+ 'b00dv9hq': 'The Media Show',
  'b006qskw': 'PM',
  'b006qjxt': "Six O'Clock News",
- 'm000ssk8': 'Series 4',
  'b006qsq5': 'Front Row',
- 'm000lhkv': 'The Whisperer in Darkness',
- 'b006qxww': 'In Touch',
- 'b019dl1b': 'Inside Health',
+ 'b006qk11': 'Moral Maze',
+ 'b006xp1x': 'Lent Talks',
+ 'b006r4wn': 'Costing the Earth',
  'b006qtl3': 'The World Tonight',
- 'p04x5pd7': 'Fortunately... with Fi and Jane',
+ 'm000czyb': 'The Skewer',
  'b006qtqd': 'Today in Parliament'}
 ```
 
-- Note the bug where some series are named things like "Series 4"! TODO: fix
-
-To obtain a `SeriesCatalogue` with genres:
+To obtain a `ProgrammeCatalogue` with genres (be warned — for the last 30 days this takes 60 seconds):
 
 ```py
-beeb.api.get_genre_series_dict("r4", n_days=1)
+beeb.api.get_genre_programme_dict("r4", n_days=30)
 ```
 ⇣
 ```py
-{'News': [('b00cs19l', 'Midnight News'),
+{'Arts': [('b006v8jn', 'A Good Read')],
+ 'Arts, Culture & the Media': [('b01875r3', 'One to One'),
+                               ('b006qsq5', 'Front Row'),
+                               ('b00dv9hq', 'The Media Show'),
+                               ('b006qp6p', 'Open Book'),
+                               ('b006r5jt', 'The Film Programme'),
+                               ('b006slnx', 'Feedback'),
+                               ('m00055q2', 'Rewinder'),
+                               ('b006qjym', 'Loose Ends'),
+                               ('b06p0p0g', 'The Why Factor'),
+                               ('b006qpdd', 'Pick of the Week'),
+                               ('b006r9xr', 'Start the Week'),
+                               ('b006s5sf', 'Bookclub'),
+                               ('b09w07c4', 'Art of Now')],
+ 'Biographical': [('b0721qqk', 'Riot Girls')],
+ 'Chat': [('p04x5pd7', 'Fortunately... with Fi and Jane'),
+          ('m000s9s1', 'Between Ourselves with Marian Keyes'),
+          ('b00snr0w', 'The Infinite Monkey Cage')],
+ 'Classic & Period': [('m000j0t9', 'Electric Decade')],
+ 'Comedy': [('b00x8dq1', 'My Teenage Diary'),
+            ('b08mj1wj', 'Reluctant Persuaders'),
+            ('m0002rjm', "Alexei Sayle's The Absence of Normal")],
+ 'Consumer': [('b006qps9', 'You and Yours')],
+ 'Crime & Justice': [('b006tgy1', 'Law in Action'), ('m0000nfh', 'Intrigue')],
+ 'Disability': [('b006qxww', 'In Touch')],
+ 'Drama': [('b04xxp0g', 'Drama'),
+           ('b08lw2hh', 'Short Works'),
+           ('m000s855', "Hardy's Women")],
+ 'Entertainment': [('b060cdyj', 'Bunk Bed')],
+ 'Factual': [('b006s54y', 'Selection of BBC World Service Programmes'),
+             ('b007qlvb', "Woman's Hour"),
+             ('m0001kbd', 'Born in Bradford'),
+             ('b006th08', 'File on 4'),
+             ('m000s2kt', 'Sideways'),
+             ('b006qk11', 'Moral Maze'),
+             ('b006qjlq', 'From Our Own Correspondent'),
+             ('b006qnc7', 'Radio 4 Appeal'),
+             ('b07cblx9', 'The Briefing Room'),
+             ('b006qng8', 'A Point of View'),
+             ('b006qnj3', 'Broadcasting House'),
+             ('m0003r3t', 'My Name Is...'),
+             ('m00019hp', 'Archive on 4'),
+             ('b007qxpr', 'Round Britain Quiz'),
+             ('b03w7bwg', 'Out of the Ordinary'),
+             ('b09zgd6y', 'Chinese Characters')],
+ 'Families & Relationships': [('b006qgj4', 'Saturday Live')],
+ 'Food & Drink': [('b006qnx3', 'The Food Programme')],
+ 'Gardens': [('b006qp2f', "Gardeners' Question Time")],
+ 'Health & Wellbeing': [('b019dl1b', 'Inside Health')],
+ 'Historical': [('m000sqkk', 'Gudrun')],
+ 'History': [('b006qykl', 'In Our Time'),
+             ('b00nrtd2', 'A History of the World in 100 Objects')],
+ 'Life Stories': [('b01mk3f8', 'Short Cuts'),
+                  ('b006qnmr', 'Desert Island Discs'),
+                  ('b006qpmv', 'Last Word'),
+                  ('b006qjz5', 'Profile'),
+                  ('b03cdpww', 'Meeting Myself Coming Back'),
+                  ('b01cqx3b', 'The Listening Project')],
+ 'Money': [('b006qjnv', 'Money Box'), ('b006sz6t', 'The Bottom Line')],
+ 'Music': [('b00704s1', 'Counterpoint')],
+ 'Nature & Environment': [('b006qj8q', 'Farming Today'),
+                          ('b006xrr2', 'Ramblings'),
+                          ('b05w99gb', 'Natural Histories'),
+                          ('b006r4wn', 'Costing the Earth')],
+ 'News': [('b00cs19l', 'Midnight News'),
           ('b007rhyn', 'News Briefing'),
           ('b006qj9z', 'Today'),
           ('b04fc120', 'News Summary'),
           ('b006qptc', 'World at One'),
           ('b006qskw', 'PM'),
           ('b006qjxt', "Six O'Clock News"),
-          ('b006qtl3', 'The World Tonight')],
- 'Factual': [('m000tcbd',
-              'One Two Three Four - The Beatles In Time by Craig Brown'),
-             ('b006s54y', 'Selection of BBC World Service Programmes'),
-             ('m000t6qm', 'Lessons On A Crisis'),
-             ('b007qlvb', "Woman's Hour"),
-             ('m000t4sz', 'The Real Internet Giants'),
-             ('m000t4t5', "Laura Barton's Notes on Music"),
-             ('m000tcc6', 'Outsiders')],
- 'Weather': [('b006qfvv', 'Shipping Forecast'), ('b007rn05', 'Weather')],
- 'Religion & Ethics': [('b006qmpj', 'Prayer for the Day')],
- 'Nature & Environment': [('b006qj8q', 'Farming Today'),
-                          ('b006r4wn', 'Costing the Earth')],
- 'Science & Nature': [('b01s6xyk', 'Tweet of the Day')],
- 'Drama': [('m000tcbk', 'Meet Me at the Museum'),
-           ('m000tcbx', 'White Fang by Jack London'),
-           ('b04xxp0g', 'Drama')],
- 'Consumer': [('b006qps9', 'You and Yours')],
- 'Soaps': [('b006qpgr', 'The Archers')],
- 'Life Stories': [('b01mk3f8', 'Short Cuts')],
- 'Crime & Justice': [('b006tgy1', 'Law in Action')],
- 'Arts': [('b006v8jn', 'A Good Read')],
- 'Comedy': [('m000ssk8', 'Series 4')],
- 'Arts, Culture & the Media': [('b006qsq5', 'Front Row')],
- 'Horror & Supernatural': [('m000lhkv', 'The Whisperer in Darkness')],
- 'Disability': [('b006qxww', 'In Touch')],
- 'Health & Wellbeing': [('b019dl1b', 'Inside Health')],
- 'Chat': [('p04x5pd7', 'Fortunately... with Fi and Jane')],
- 'Politics': [('b006qtqd', 'Today in Parliament')]}
+          ('b006qtl3', 'The World Tonight'),
+          ('b007rhyy', 'News and Papers'),
+          ('b00g3j4x', 'News'),
+          ('b006qnz4', 'The World This Weekend')],
+ 'Panel Shows': [('b006s5dp', 'Just a Minute')],
+ 'Politics': [('b006qtqd', 'Today in Parliament'),
+              ('b006qgvj', 'Any Questions?'),
+              ('b006qjfq', 'The Week in Westminster'),
+              ('b006qmmy', 'Any Answers?'),
+              ('m0001xq1', 'The Battles That Won Our Freedoms'),
+              ('b006r4vz', 'Analysis'),
+              ('b006s624', 'Westminster Hour')],
+ 'Religion & Ethics': [('b006qmpj', 'Prayer for the Day'),
+                       ('b006xp1x', 'Lent Talks'),
+                       ('b006sgsh', 'Bells on Sunday'),
+                       ('b006qn7f', 'Something Understood'),
+                       ('b006qnbd', 'Sunday'),
+                       ('b006qnds', 'Sunday Worship')],
+ 'Satire': [('b09rwvwt', 'Henry Normal: A Normal...'),
+            ('m000czyb', 'The Skewer'),
+            ('b006qgt7', 'The Now Show')],
+ 'Science & Nature': [('b01s6xyk', 'Tweet of the Day'),
+                      ('b07dx75g', 'The Curious Cases of Rutherford & Fry'),
+                      ('b036f7w2', 'BBC Inside Science'),
+                      ('b06vy2jd', 'Science Stories')],
+ 'Science & Technology': [('b01n7094', 'The Digital Human')],
+ 'Sitcoms': [('b0b2nh1n', 'Ability')],
+ 'Sketch': [('b00kvs8r', 'Newsjack')],
+ 'Soaps': [('b006qpgr', 'The Archers'), ('b006qnkc', 'The Archers Omnibus')],
+ 'Standup': [('b0b22qhr', 'Stand-Up Specials'),
+             ('b011tzjy', 'Meet David Sedaris')],
+ 'Weather': [('b006qfvv', 'Shipping Forecast'), ('b007rn05', 'Weather')]}
 ```
 
 </p>
@@ -344,15 +403,15 @@ The following functions handle this in `beeb.api`:
 
 - `get_episode_dict`
   - a trivial wrapper to access the `episodes_dict` attribute of `EpisodeListingsHtml`
-- `final_m4s_link_from_series_pid`
+- `final_m4s_link_from_programme_pid`
   - a wrapper to access the `last_m4s_link` attribute of the `MpdXml` class constructed with the `from_episode_pid` class method
 - `final_m4s_link_from_episode_pid`
   - a wrapper to access the `last_m4s_link` attribute of the `MpdXml` class constructed with the `from_episode_pid` class method
     after obtaining the episode PID from the episode dict
-- `get_series_pid_by_name`
+- `get_programme_pid_by_name`
   - a wrapper to access the `filtered` attribute of a `EpisodeMetadataPidJson` object
-    constructed with the `get_series_pid` class method.
-  - technically it's "by series title and station name" (the arguments are in this order)
+    constructed with the `get_programme_pid` class method.
+  - technically it's "by programme title and station name" (the arguments are in this order)
 
 You may very well prefer to construct the objects and handle the attributes involved yourself,
 these are given as 'recipes' to make it clear how to use beeb's functionality.

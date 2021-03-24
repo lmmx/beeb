@@ -1,36 +1,47 @@
-from .series import Series
+from .programme import Programme
 from .listings import ChannelListings
 from ...api.json_helpers import EpisodeMetadataPidJson
 
-__all__ = ["SeriesCatalogue"]
+__all__ = ["ProgrammeCatalogue"]
 
-class SeriesCatalogue(dict):
+class ProgrammeCatalogue(dict):
     def __init__(self, station_name, with_genre=False, n_days=30):
         """
-        Given the name of a channel, build a dict of series PIDs and series titles.
+        Given a channel name, build a dict of programme PIDs and programme titles.
         If `with_genre` is True, make the value a 2-tuple of (title, genre).
         """
         self.genred = with_genre
         listings = ChannelListings.from_channel_name(station_name, n_days=n_days)
         for episode in listings.all_broadcasts:
             if episode.title in self.episode_titles:
-                continue # Presume episode titles are unique to a series (wrong!!!)
+                #print(episode.title, episode.pid)
+                continue
             try:
+                # Obtain programme PID, programme title, and [if with_genre] programme genre
                 if with_genre:
-                    parse_json = EpisodeMetadataPidJson.get_series_pid_title_genre
+                    parse_json = EpisodeMetadataPidJson.get_programme_pid_title_genre
                 else:
-                    parse_json = EpisodeMetadataPidJson.get_series_pid_title
-                # EpisodeMetadataPidJson methods return same arg order as Series takes
-                series = Series(*parse_json(episode.pid))
+                    parse_json = EpisodeMetadataPidJson.get_programme_pid_title
+                # EpisodeMetadataPidJson methods return same arg order as Programme takes
+                programme_info = parse_json(episode.pid)
+                # if with_genre is False, opt_genre will simply be an empty list
+                prog_pid, working_title, *opt_genre = programme_info
+                if prog_pid in self:
+                    continue # Already processed this programme
+                programme = Programme(*programme_info)
+                if "Series" in programme.title:
+                    breakpoint()
+                    # Repeat
+                    programme_info = parse_json(episode.pid)
             except KeyError as e:
                 # One off programmes don't have a "parent" key (not a "series"/"brand")
                 continue
             finally:
-                self.record_series(series)
+                self.record_programme(programme)
 
-    def record_series(self, series):
-        sd_val = (series.title, series.genre) if self.genred else series.title
-        self.setdefault(series.pid, sd_val)
+    def record_programme(self, programme):
+        pd_val = (programme.title, programme.genre) if self.genred else programme.title
+        self.setdefault(programme.pid, pd_val)
 
     @property
     def episode_titles(self):
@@ -39,10 +50,10 @@ class SeriesCatalogue(dict):
     @property
     def keyed_by_genre(self):
         genre_dict = {}
-        for genre_title, series_pid_and_title in (
+        for genre_title, programme_pid_and_title in (
             [v[1], (k, v[0])]
             for (k,v) in self.items()
         ):
             genre_dict.setdefault(genre_title, [])
-            genre_dict[genre_title].append(series_pid_and_title)
+            genre_dict[genre_title].append(programme_pid_and_title)
         return genre_dict

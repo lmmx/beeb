@@ -14,38 +14,59 @@ class EpisodePlaylistPidJson(JsonHandler):
 class EpisodeMetadataPidJson(JsonHandler):
     "Episode metadata JSON helper"
     pid_property_name = "episode_pid"
-    series_pid_kp = ["programme", "parent", "programme", "pid"]
-    series_title_kp = ["programme", "parent", "programme", "title"]
-    cat_kp = ["programme", "categories"] # unkeyed list here
-    filter_key_path = series_pid_kp
+    parent_type_kp = "programme parent programme type".split()
+    # Presume only a single parent (brand) unless multiple parents (series and brand)
+    programme_pid_kp = "programme parent programme pid".split()
+    programme_title_kp = "programme parent programme title".split()
+    cat_kp = "programme categories".split() # unkeyed list here
+    filter_key_path = programme_pid_kp
 
     @property
     def url(self):
         return f"https://www.bbc.co.uk/programmes/{self.episode_pid}.json"
 
-    @classmethod
-    def get_series_pid(cls, episode_pid):
-        return cls(episode_pid, filter_key_path=cls.series_pid_kp).filtered
+    @property
+    def parent_type(self):
+        return self.filter(self.parent_type_kp, force_preserve=True)
+
+    def detect_parent_is_series(self):
+        """
+        Check whether the brand is nested beneath the series, and augment keypath
+        attributes if so (else parent type is a single 'brand').
+        """
+        if self.parent_type == "series":
+            prog_stem = "programme parent programme parent programme"
+            self.programme_pid_kp = f"{prog_stem} pid".split()
+            self.programme_title_kp = f"{prog_stem} title".split()
 
     @classmethod
-    def get_series_pid_title(cls, episode_pid):
-        series_pid_title_kp = (cls.series_pid_kp, cls.series_title_kp)
-        return cls(episode_pid, filter_key_path=series_pid_title_kp).filtered
-
-    @classmethod
-    def get_series_pid_title_genre(cls, episode_pid):
+    def get_programme_pid(cls, episode_pid):
         j = cls(episode_pid)
-        series_pid_title_kp = (cls.series_pid_kp, cls.series_title_kp)
+        j.detect_parent_is_series()
+        return j.filter(filter_key_path=j.programme_pid_kp)
+
+    @classmethod
+    def get_programme_pid_title(cls, episode_pid):
+        j = cls(episode_pid)
+        j.detect_parent_is_series()
+        programme_pid_title_kp = (j.programme_pid_kp, j.programme_title_kp)
+        return j.filter(filter_key_path=programme_pid_title_kp)
+
+    @classmethod
+    def get_programme_pid_title_genre(cls, episode_pid):
+        j = cls(episode_pid)
+        j.detect_parent_is_series() # modify keypath attributes if series
+        programme_pid_title_kp = (j.programme_pid_kp, j.programme_title_kp)
         # Force preserve: don't clear the dict
-        series_pid, series_title = j.filter(
-            filter_key_path=series_pid_title_kp, force_preserve=True
+        programme_pid, programme_title = j.filter(
+            filter_key_path=programme_pid_title_kp, force_preserve=True
         )
         genre_title = next(
             c["title"]
             for c in j.filter(j.cat_kp) # Don't force preserve: clear the dict
             if c.get("type") == "genre"
         )
-        return series_pid, series_title, genre_title
+        return programme_pid, programme_title, genre_title
 
 class MediasetJson(JsonHandler):
     "MPEG-DASH stream manifest JSON helper"
