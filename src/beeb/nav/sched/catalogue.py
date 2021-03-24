@@ -29,10 +29,6 @@ class ProgrammeCatalogue(dict):
                 if prog_pid in self:
                     continue # Already processed this programme
                 programme = Programme(*programme_info)
-                if "Series" in programme.title:
-                    breakpoint()
-                    # Repeat
-                    programme_info = parse_json(episode.pid)
             except KeyError as e:
                 # One off programmes don't have a "parent" key (not a "series"/"brand")
                 continue
