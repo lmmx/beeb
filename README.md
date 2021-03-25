@@ -380,16 +380,11 @@ beeb.api.get_genre_programme_dict("r4", n_days=30)
 
 This is equivalent to constructing the class directly:
 
-```sh
-time python -c 'import beeb; pc = beeb.nav.sched.ProgrammeCatalogue("r4", n_days=30, with_genre=True)'
-```
-⇣
-```
-real    0m7.645s
-user    0m13.015s
-sys     0m0.374s
+```py
+beeb.nav.sched.ProgrammeCatalogue("r4", n_days=30, with_genre=True)
 ```
 
+- This takes about 7 or 8 seconds (fast given the number of requests it's making!)
 - To print the dictionary organised by genre, access its `.keyed_by_genre` property.
 - Note that these requests occasionally fail (async sessions are prone to rare connection errors),
   and are silently retried up to 3 times (one seems to be enough in my experience).
