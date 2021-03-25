@@ -388,10 +388,39 @@ beeb.nav.sched.ProgrammeCatalogue("r4", n_days=30, with_genre=True)
 - Note that these requests occasionally fail (async sessions are prone to rare connection errors),
   and are silently retried up to 3 times (one seems to be enough in my experience).
 
+The programme catalogues can be stored in a database and then restored from there:
+
+```py
+>>> pc = beeb.nav.sched.ProgrammeCatalogue("r4", n_days=1, with_genre=True, async_pull=True)'
+>>> pc.store_db()
+>>> rc = beeb.nav.sched.ProgrammeCatalogue.regenerate_from_db("r4")
+>>> pc == rc, pc.genred == rc.genred, pc.db.path == rc.db.path, type(rc) is type(pc)
+(True, True, True, True)
+```
+
+Note that regenerated catalogues have no associated day range
+
+```py
+>>> rc.n_days
+0
+```
+
+The SQLite3 database `programme_catalogue.db` records a simple four field table, `programmes`, in `beeb.data.store`:
+
+```sql
+SELECT * FROM programmes;
+```
+⇣
+```STDOUT
+m000tcdg|Midnight News|News|r4
+m000tcdj|Shipping Forecast|Weather|r4
+m000tcdl|Selection of BBC World Service Programmes|Factual|r4
+...
+```
+
 </p>
 
 </details>
-
 
 ## Stream handling
 

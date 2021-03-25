@@ -1,9 +1,8 @@
-from .async_utils import fetch_episode_metadata
+from .async_utils import fetch_episode_metadata, async_errors
 from .programme import Programme
 from .listings import ChannelListings
 from ...api.json_helpers import EpisodeMetadataPidJson
-from httpx import RemoteProtocolError
-from h2.exceptions import ProtocolError
+from ...share.db_utils import CatalogueDB
 from sys import stderr
 
 __all__ = ["ProgrammeCatalogue"]
@@ -15,42 +14,24 @@ class ProgrammeCatalogue(dict):
         If `with_genre` is True, make the value a 2-tuple of (title, genre).
         """
         self.genred = with_genre
-        listings = ChannelListings.from_channel_name(station_name, n_days=n_days)
-        if async_pull:
-            self.async_pull_and_parse(listings)
-        else:
-            self.pull_and_parse(listings)
+        self.station_name = station_name
+        self.n_days = n_days
+        # n_days = 0 will be parsed as None-like and default to 30, so skip manually
+        if n_days > 0:
+            listings = ChannelListings.from_channel_name(station_name, n_days=n_days)
+            if async_pull:
+                self.async_pull_and_parse(listings)
+            else:
+                self.pull_and_parse(listings)
 
     def pull_and_parse(self, listings):
-        for episode in listings.all_broadcasts:
-            if episode.title in self.episode_titles:
-                #print(episode.title, episode.pid)
-                continue
-            try:
-                # Obtain programme PID, programme title, and [if genred] programme genre
-                if self.genred:
-                    parse_json = EpisodeMetadataPidJson.get_programme_pid_title_genre
-                else:
-                    parse_json = EpisodeMetadataPidJson.get_programme_pid_title
-                # EpisodeMetadataPidJson methods return same arg order as Programme takes
-                programme_info = parse_json(episode.pid)
-                # if genred is False, opt_genre will simply be an empty list
-                prog_pid, working_title, *opt_genre = programme_info
-                if prog_pid in self:
-                    continue # Already processed this programme
-                programme = Programme(*programme_info)
-            except KeyError as e:
-                # One off programmes don't have a "parent" key (not a "series"/"brand")
-                continue
-            finally:
-                self.record_programme(programme)
+        self.parse_broadcast_records(listings.all_broadcasts, sync=True)
 
     def async_pull_and_parse(self, listings, pbar=None, verbose=False, n_retries=3):
-        # (Due to httpx client bug documented in issue 6 of beeb issue tracker)
         for i in range(n_retries):
             try:
                 fetch_episode_metadata(listings, pbar=pbar, verbose=verbose)
-            except (ProtocolError, RemoteProtocolError) as e:
+            except async_errors as e:
                 if verbose:
                     print(f"Error occurred {e}, retrying", file=stderr)
                 if i == n_retries - 1:
@@ -58,26 +39,39 @@ class ProgrammeCatalogue(dict):
                 # Otherwise retry, connection was terminated due to httpx bug (see #6)
             else:
                 break # exit the for loop if it succeeds
-        self.listings = listings # broadcasts got `.frozen_data` attrib of JSON string
-        for b in self.listings.all_broadcasts:
+        self.parse_broadcast_records(listings.all_broadcasts, sync=False)
+
+    def parse_broadcast_records(self, broadcasts, sync):
+        """
+        Given a list of all_broadcasts for some listings and a bool `sync` indicating
+        whether it follows a synchronous or asynchronous routine, update the dict with
+        the programme info in the broadcasts (or 'frozen' in them if async).
+        """
+        for b in broadcasts:
+            if sync:
+                if b.title in self.episode_titles:
+                    continue
             try:
                 if self.genred:
                     parse_json = EpisodeMetadataPidJson.get_programme_pid_title_genre
                 else:
                     parse_json = EpisodeMetadataPidJson.get_programme_pid_title
-                if not hasattr(b, "frozen_data"):
+                if not sync and not hasattr(b, "frozen_data"):
                     # The episode was skipped and no data stored on it, so skip here too
                     continue
-                programme_info = parse_json(b.frozen_data.episode_pid, prefab=b.frozen_data)
-                prog_pid, working_title, *opt_genre = programme_info
+                prog_pid = b.pid if sync else b.frozen_data.episode_pid
+                prefab = None if sync else b.frozen_data
+                # No need to re-assign the program PID, just title and possibly genre
+                _, prog_title, *opt_genre = parse_json(prog_pid, prefab=prefab)
+                prog_genre = opt_genre[0] if self.genred else None
                 if prog_pid in self:
                     continue # Already processed this programme
-                programme = Programme(*programme_info)
+                prog = Programme(prog_pid, prog_title, prog_genre, self.station_name)
             except KeyError as e:
                 # One off programmes don't have a "parent" key (not a "series"/"brand")
                 continue
             finally:
-                self.record_programme(programme)
+                self.record_programme(prog)
 
     def record_programme(self, programme):
         pd_val = (programme.title, programme.genre) if self.genred else programme.title
@@ -99,3 +93,54 @@ class ProgrammeCatalogue(dict):
             genre_dict.setdefault(genre_title, [])
             genre_dict[genre_title].append(programme_pid_and_title)
         return genre_dict
+
+    @classmethod
+    def regenerate_from_db(cls, station_name):
+        catalogue = cls(station_name, with_genre=True, n_days=0)
+        catalogue.ensure_db(no_touch=True)
+        db_entries = catalogue.retrieve_station_in_db()
+        genres = [e[2] for e in db_entries] # peek at the genres
+        catalogue.genred = any(genres) # Set to False if all genres are `None`
+        for pid, title, genre, station in db_entries:
+            prog = Programme(pid, title, genre, station)
+            catalogue.record_programme(prog)
+        return catalogue
+
+    def ensure_db(self, no_touch=False):
+        """
+        Run the 'CREATE TABLE IF NOT EXISTS' routine and set `ProgrammeCatalogue.db`,
+        but if `no_touch` is True, then raise a `FileNotFoundError` if the database
+        doesn't already exist (do not implicitly create it!)
+        """
+        if not hasattr(self, "db"):
+            # creates a sqlite3 database in beeb.data.store
+            self.db = CatalogueDB(create=not no_touch, no_touch=no_touch)
+
+    def store_db(self):
+        self.ensure_db()
+        for pid, value in self.items():
+            if self.genred:
+                title, genre = value
+            else:
+                title = value
+                genre = None
+            self.insert_db_entry(pid, title, genre)
+
+    def insert_db_entry(self, pid, title, genre):
+        if self.genred and genre is None:
+            raise ValueError("No genre specified but catalogue was built with genres")
+        if not hasattr(self, "db"):
+            msg = "Create DB before inserting. Hint: `ProgrammeCatalogue.store_db()`"
+            raise ValueError(msg)
+        self.db.insert_entry(pid, title, genre, station=self.station_name)
+
+    def retrieve_station_in_db(self):
+        result = self.db.retrieve_station(self.station_name)
+        return result
+    
+    def retrieve_programme_pid(self, pid):
+        result = self.db.retrieve_pid(pid)
+        if result:
+            return Programme(*result)
+        else:
+            raise KeyError(f"{pid=} not found in {self.db}")
