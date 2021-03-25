@@ -40,21 +40,21 @@ class EpisodeMetadataPidJson(JsonHandler):
             self.programme_title_kp = f"{prog_stem} title".split()
 
     @classmethod
-    def get_programme_pid(cls, episode_pid):
-        j = cls(episode_pid)
+    def get_programme_pid(cls, episode_pid, prefab=None):
+        j = prefab if prefab else cls(episode_pid)
         j.detect_parent_is_series()
         return j.filter(filter_key_path=j.programme_pid_kp)
 
     @classmethod
-    def get_programme_pid_title(cls, episode_pid):
-        j = cls(episode_pid)
+    def get_programme_pid_title(cls, episode_pid, prefab=None):
+        j = prefab if prefab else cls(episode_pid)
         j.detect_parent_is_series()
         programme_pid_title_kp = (j.programme_pid_kp, j.programme_title_kp)
         return j.filter(filter_key_path=programme_pid_title_kp)
 
     @classmethod
-    def get_programme_pid_title_genre(cls, episode_pid):
-        j = cls(episode_pid)
+    def get_programme_pid_title_genre(cls, episode_pid, prefab=None):
+        j = prefab if prefab else cls(episode_pid)
         j.detect_parent_is_series() # modify keypath attributes if series
         programme_pid_title_kp = (j.programme_pid_kp, j.programme_title_kp)
         # Force preserve: don't clear the dict

@@ -82,6 +82,13 @@ class JsonHandler(SerialisedHandler):
     def reader_func(data):
         return loads(data)
 
+    @classmethod
+    def from_json(cls, json, pid, filter_key_path=None, load_string=False):
+        if load_string:
+            json = loads(json)
+        j = cls(pid=pid, filter_key_path=filter_key_path, defer_pull=True)
+        j.handle(json)
+        return j
 
 class HtmlHandler(PullMixIn):
     """

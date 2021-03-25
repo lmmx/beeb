@@ -1,9 +1,12 @@
 from functools import partial
+from httpx import RemoteProtocolError
+from h2.exceptions import ProtocolError
 from .async_utils import fetch_schedules
 from .remote import RemoteMixIn
 from .schedule import ChannelSchedule
 from .search import ScheduleSearchMixIn
 from ..channel_ids import ChannelPicker
+from ...api.json_helpers import EpisodeMetadataPidJson
 from ...time import parse_abs_from_rel_date, parse_date_range
 from ...share import batch_multiprocess_with_return
 
@@ -14,6 +17,7 @@ class ChannelListings(ScheduleSearchMixIn, RemoteMixIn):
     """
     Listings for a given channel
     """
+    episode_reader_func = EpisodeMetadataPidJson.reader_func
 
     def __init__(self, channel_id, from_date=None, to_date=None, n_days=None):
         self.channel_id = channel_id
@@ -44,8 +48,19 @@ class ChannelListings(ScheduleSearchMixIn, RemoteMixIn):
             for i in range(self.n_days)
         ]
 
-    def fetch_schedules(self, verbose=False):
-        fetch_schedules(self.urlset, self.schedules)
+    def fetch_schedules(self, verbose=False, n_retries=3):
+        # (Due to httpx client bug documented in issue 6 of beeb issue tracker)
+        for i in range(n_retries):
+            try:
+                fetch_schedules(self.urlset, self.schedules)
+            except (ProtocolError, RemoteProtocolError) as e:
+                if verbose:
+                    print(f"Error occurred {e}, retrying")
+                if i == n_retries - 1:
+                    raise e # # Persisted after all retries, so throw it, don't proceed
+                # Otherwise retry, connection was terminated due to httpx bug (see #6)
+            else:
+                break # exit the for loop if it succeeds
         self.boil_all_schedules(verbose=verbose)
 
     def boil_all_schedules(self, verbose=False):
@@ -85,3 +100,11 @@ class ChannelListings(ScheduleSearchMixIn, RemoteMixIn):
     def all_broadcasts(self):
         "Presuming the schedules are already boiled (i.e. parsed), enumerate broadcasts"
         return [b for s in self.schedules for b in s.broadcasts]
+
+    @property
+    def broadcasts_urlset(self):
+        "Make a generator to produce the URLs for the broadcasts from all_broadcasts"
+        return (
+            EpisodeMetadataPidJson(episode.pid, defer_pull=True).url
+            for episode in self.all_broadcasts
+        )
