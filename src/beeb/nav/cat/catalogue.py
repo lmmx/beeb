@@ -1,9 +1,9 @@
-from ..sched.async_utils import fetch_episode_metadata, async_errors
 from ..sched.programme import Programme
 from ..sched.listings import ChannelListings
 from ..channel_ids import ChannelPicker
 from ...api.json_helpers import EpisodeMetadataPidJson
 from ...share.db_utils import CatalogueDB
+from ...share.http_utils import async_errors
 from sys import stderr
 
 __all__ = ["ProgrammeCatalogue"]
@@ -33,7 +33,7 @@ class ProgrammeCatalogue(dict):
     def async_pull_and_parse(self, listings, pbar=None, verbose=False, n_retries=3):
         for i in range(n_retries):
             try:
-                fetch_episode_metadata(listings, pbar=pbar, verbose=verbose)
+                listings.fetch_episode_metadata(pbar=pbar, verbose=verbose)
             except async_errors as e:
                 if verbose:
                     print(f"Error occurred {e}, retrying", file=stderr)

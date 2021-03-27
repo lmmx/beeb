@@ -4,12 +4,8 @@ from aiostream import stream
 from functools import partial
 from pathlib import Path
 from ...api.json_helpers import EpisodeMetadataPidJson
-from httpx import RemoteProtocolError
-from h2.exceptions import ProtocolError
 
-__all__ = ["async_errors", "fetch", "process", "async_fetch_urlset", "fetch_urls"]
-
-async_errors = (RemoteProtocolError, ProtocolError)
+__all__ = ["fetch", "process", "async_fetch_urlset", "fetch_urls"]
 
 async def fetch(session, url, raise_for_status=False):
     response = await session.get(str(url))

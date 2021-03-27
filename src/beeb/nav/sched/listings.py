@@ -1,7 +1,7 @@
 from functools import partial
 from httpx import RemoteProtocolError
 from h2.exceptions import ProtocolError
-from .async_utils import fetch_schedules
+from .async_utils import fetch_schedules, fetch_episode_metadata
 from .remote import RemoteMixIn
 from .schedule import ChannelSchedule
 from ..search import ScheduleSearchMixIn
@@ -18,6 +18,7 @@ class ChannelListings(ScheduleSearchMixIn, RemoteMixIn):
     Listings for a given channel
     """
     episode_reader_func = EpisodeMetadataPidJson.reader_func
+    fetch_episode_metadata = fetch_episode_metadata # bind as method
 
     def __init__(self, channel_id, from_date=None, to_date=None, n_days=None):
         self.channel_id = channel_id
