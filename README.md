@@ -227,7 +227,7 @@ within the listings.
 
 <p>
 
-To obtain a `ProgrammeCatalogue` with just programme PIDs and titles:
+To obtain an up-to-date `ProgrammeCatalogue` with just programme PIDs and titles:
 
 ```py
 beeb.api.get_programme_dict("r4", n_days=1)
@@ -422,7 +422,10 @@ m000tcdl|Selection of BBC World Service Programmes|Factual|r4
 
 </details>
 
-<details><summary>❧ Click here for bulk ProgrammeCatalogue actions</summary>
+If your programme(s) of interest are regular, long-running ones, they should be
+included in the database of programmes which ships with beeb.
+
+<details><summary>❧ Click here for ProgrammeCatalogue database support and bulk actions</summary>
 
 <p>
 
