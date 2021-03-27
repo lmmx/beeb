@@ -474,7 +474,7 @@ b006wkry|Newsbeat|News|r1x
 See
 [`beeb.nav.sched.catalogue`](https://github.com/lmmx/beeb/blob/master/src/beeb/nav/sched/catalogue.py)
 and [`beeb.share.db_utils`](https://github.com/lmmx/beeb/blob/master/src/beeb/share/db_utils.py)
-for more details of the database interface.
+for more details.
 
 </p>
 
