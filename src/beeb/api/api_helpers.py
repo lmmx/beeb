@@ -1,7 +1,7 @@
 from .xml_helpers import MpdXml
 from .html_helpers import EpisodeListingsHtml
 from .json_helpers import EpisodeMetadataPidJson
-from ..nav.sched import ChannelListings, ProgrammeCatalogue
+from ..nav import ChannelListings, ProgrammeCatalogue
 
 __all__ = [
     "get_episode_dict",

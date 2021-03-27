@@ -4,7 +4,7 @@ from h2.exceptions import ProtocolError
 from .async_utils import fetch_schedules
 from .remote import RemoteMixIn
 from .schedule import ChannelSchedule
-from .search import ScheduleSearchMixIn
+from ..search import ScheduleSearchMixIn
 from ..channel_ids import ChannelPicker
 from ...api.json_helpers import EpisodeMetadataPidJson
 from ...time import parse_abs_from_rel_date, parse_date_range

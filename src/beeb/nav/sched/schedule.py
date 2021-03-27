@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup as BS
 from .broadcasts import Broadcast
 from .remote import RemoteMixIn
-from .search import ScheduleSearchMixIn
+from ..search import ScheduleSearchMixIn
 from ..channel_ids import ChannelPicker
 from ...share.http_utils import GET
 from ...time import parse_abs_from_rel_date, cal_path

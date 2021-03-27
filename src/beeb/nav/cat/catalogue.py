@@ -1,6 +1,6 @@
-from .async_utils import fetch_episode_metadata, async_errors
-from .programme import Programme
-from .listings import ChannelListings
+from ..sched.async_utils import fetch_episode_metadata, async_errors
+from ..sched.programme import Programme
+from ..sched.listings import ChannelListings
 from ..channel_ids import ChannelPicker
 from ...api.json_helpers import EpisodeMetadataPidJson
 from ...share.db_utils import CatalogueDB

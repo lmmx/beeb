@@ -381,7 +381,7 @@ beeb.api.get_genre_programme_dict("r4", n_days=30)
 This is equivalent to constructing the class directly and accessing its `.keyed_by_genre` property.
 
 ```py
-beeb.nav.sched.ProgrammeCatalogue("r4", n_days=30, with_genre=True)
+beeb.nav.ProgrammeCatalogue("r4", n_days=30, with_genre=True)
 ```
 
 - This takes about 7 or 8 seconds (fast given the number of requests it's making!)
@@ -391,9 +391,9 @@ beeb.nav.sched.ProgrammeCatalogue("r4", n_days=30, with_genre=True)
 The programme catalogues can be stored in a database and then restored from there:
 
 ```py
->>> pc = beeb.nav.sched.ProgrammeCatalogue("r4", n_days=1, with_genre=True, async_pull=True)'
+>>> pc = beeb.nav.ProgrammeCatalogue("r4", n_days=1, with_genre=True, async_pull=True)'
 >>> pc.store_db()
->>> rc = beeb.nav.sched.ProgrammeCatalogue.regenerate_from_db("r4")
+>>> rc = beeb.nav.ProgrammeCatalogue.regenerate_from_db("r4")
 >>> pc == rc, pc.genred == rc.genred, pc.db.path == rc.db.path, type(rc) is type(pc)
 (True, True, True, True)
 ```
@@ -442,7 +442,7 @@ Populating the programme catalogues database for all national channels
 takes approximately 1m30s, and then can be reloaded instantly:
 
 ```py
-beeb.nav.sched.ProgrammeCatalogue.generate_channels_by_category("national")
+beeb.nav.ProgrammeCatalogue.generate_channels_by_category("national")
 ```
 
 The following SQL query shows duplicates in the resulting database
@@ -472,7 +472,7 @@ b006wkry|Newsbeat|News|r1x
 ```
 
 See
-[`beeb.nav.sched.catalogue`](https://github.com/lmmx/beeb/blob/master/src/beeb/nav/sched/catalogue.py)
+[`beeb.nav.cat.catalogue`](https://github.com/lmmx/beeb/blob/master/src/beeb/nav/cat/catalogue.py)
 and [`beeb.share.db_utils`](https://github.com/lmmx/beeb/blob/master/src/beeb/share/db_utils.py)
 for more details.
 

@@ -1,35 +1,20 @@
 import re
+from .sieve import Sieve
 
 __all__ = ["ScheduleSieve", "ScheduleSearchMixIn"]
 
 
-class ScheduleSieve:
+class ScheduleSieve(Sieve):
     """
     Internal exposed via ScheduleSearchMixIn, reusable for multiple schedules.
     """
 
-    def __init__(self, query, pid_only, multi, regex, uncased, synopsis, throw):
-        self.query = query
-        self.pid_only = pid_only
-        self.multi = multi
-        self.regex = regex
-        self.uncased = uncased
-        self.synopsis = synopsis
-        self.throw = throw
-
     def search(self, schedule):
-        if self.regex:
-            if self.uncased:
-                rc = re.compile(self.query, re.IGNORECASE)
-            else:
-                rc = re.compile(self.query)
-        # re.Match object is truthy, so use for regex searches not the equality operator
-        is_match = rc.match if self.regex else self.query.__eq__
         v = [
             b.pid if self.pid_only else b
             for b in schedule.broadcasts
             if any(
-                is_match(t)
+                self.is_match(t)
                 for t in (
                     [b.title, b.subtitle, b.synopsis] if self.synopsis else [b.title]
                 )
@@ -37,8 +22,8 @@ class ScheduleSieve:
         ]
         if not v:
             if self.throw:
-                q_repr = f"matching '{self.query}'" if self.regex else f"'{self.query}'"
-                raise ValueError(f"No broadcast {q_repr} on {schedule.date_repr}")
+                msg = f"No broadcast {self._query_repr_} on {schedule.date_repr}"
+                raise ValueError(msg)
             elif not self.multi:
                 v = None
         elif not self.multi:
