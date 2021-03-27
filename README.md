@@ -463,63 +463,18 @@ WHERE pid IN (SELECT pid
 ```
 ⇣
 ```
-b006qgt7|The Now Show|Satire|r4
-b006qgt7|The Now Show|Satire|r4x
-b006s5dp|Just a Minute|Panel Shows|r4
-b006s5dp|Just a Minute|Panel Shows|r4x
-b006v8jn|A Good Read|Arts|r4
-b006v8jn|A Good Read|Arts|r4x
 b006wkp7|Annie Nightingale presents...|Dance & Electronica|r1
 b006wkp7|Annie Nightingale presents...|Dance & Electronica|r1x
 b006wkry|Newsbeat|News|an
 b006wkry|Newsbeat|News|r1
 b006wkry|Newsbeat|News|r1x
-b006wqcx|1Xtra's Takeover with DJ Target|Experimental & New|r1
-b006wqcx|1Xtra's Takeover with DJ Target|Experimental & New|r1x
-b0070hx6|5 Live Sport|Football|r5l
-b0070hx6|5 Live Sport|Sport|r5lse
-b0072wxq|DJ Limelight & Kan D Man|Asian Underground|an
-b0072wxq|DJ Limelight & Kan D Man|Asian Underground|r1x
-b007m6lj|5 Live Formula 1|Formula One|r5l
-b007m6lj|5 Live Formula 1|Formula One|r5lse
-b00hg8dq|Archive on 4|Factual|r4
-b00hg8dq|Archive on 4|Factual|r4x
-b00kvs8r|Newsjack|Sketch|r4
-b00kvs8r|Newsjack|Sketch|r4x
-b00v4tv3|Benji B|Dance & Electronica|r1
-b00v4tv3|Benji B|Dance & Electronica|r1x
-b011tzjy|Meet David Sedaris|Standup|r4
-b011tzjy|Meet David Sedaris|Standup|r4x
-b01d76k4|Radio 1's Residency|Dance & Electronica|r1
-b01d76k4|Radio 1's Residency|Dance & Electronica|r1x
-b01dmw90|Diplo and Friends|Dance & Electronica|r1
-b01dmw90|Diplo and Friends|Dance & Electronica|r1x
-b01mk3f8|Short Cuts|Life Stories|r4
-b01mk3f8|Short Cuts|Life Stories|r4x
-b04xxp0g|Drama|Historical|r4
-b04xxp0g|Drama|Drama|r4x
-b06cc79v|Kenny Allstar|Grime|an
-b06cc79v|Kenny Allstar|Grime|r1x
-b08mj1wj|Reluctant Persuaders|Comedy|r4
-b08mj1wj|Reluctant Persuaders|Comedy|r4x
-b09c12lj|Radio 1's Drum & Bass Show with René LaVice|Drum & Bass|r1
-b09c12lj|Radio 1's Drum & Bass Show with René LaVice|Drum & Bass|r1x
-b0b22qhr|Stand-Up Specials|Standup|r4
-b0b22qhr|Stand-Up Specials|Standup|r4x
-m00012dh|1Xtra's Rap Show with Tiffany Calver|Hip Hop|r1
-m00012dh|1Xtra's Rap Show with Tiffany Calver|Hip Hop|r1x
-m000myrd|Radio 1's Soundsystem with Jeremiah Asiamah|Dance & Electronica|an
-m000myrd|Radio 1's Soundsystem with Jeremiah Asiamah|Dance & Electronica|r1
-m000myrd|Radio 1's Soundsystem with Jeremiah Asiamah|Dance & Electronica|r1x
-m000s02x|Money Moves with Toni Tone|Health & Wellbeing|r1
-m000s02x|Money Moves with Toni Tone|Health & Wellbeing|r1x
-m000s9s1|Between Ourselves with Marian Keyes|Chat|r4
-m000s9s1|Between Ourselves with Marian Keyes|Chat|r4x
-m000slb1|1Xtra Loves Jamaica|Dancehall|an
-m000slb1|1Xtra Loves Jamaica|Dancehall|r1x
-m000sqkk|Gudrun|Historical|r4
-m000sqkk|Gudrun|Historical|r4x
+...
 ```
+
+See
+[`beeb.nav.sched.catalogue`](https://github.com/lmmx/beeb/blob/master/src/beeb/nav/sched/catalogue.py)
+and [`beeb.share.db_utils`](https://github.com/lmmx/beeb/blob/master/src/beeb/share/db_utils.py)
+for more details of the database interface.
 
 </p>
 
