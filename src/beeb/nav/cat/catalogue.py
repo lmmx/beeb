@@ -1,6 +1,5 @@
 from ..sched.programme import Programme
 from ..sched.listings import ChannelListings
-from ..channel_ids import ChannelPicker
 from ...api.json_helpers import EpisodeMetadataPidJson
 from ...share.db_utils import CatalogueDB
 from ...share.http_utils import async_errors
@@ -174,55 +173,3 @@ class ProgrammeCatalogue(dict):
             return Programme(*result)
         else:
             raise KeyError(f"{pid=} not found in {self.db}")
-
-    @classmethod
-    def generate_channels_by_names(
-            cls, names, lazy=True, genred=True, n_days=30, async_pull=True, store=True
-        ):
-        """
-        Generate programme catalogues for a list of names, e.g.
-        `["r1", "r2"]` (matching those in `beeb.nav.channel_ids`)
-        """
-        catalogues = [
-            cls.lazy_generate(
-                c, genred=genred, n_days=n_days, async_pull=async_pull, store=store
-            )
-            if lazy
-            else cls(
-                c, with_genre=genred, n_days=n_days, async_pull=async_pull, store=store
-            )
-            for c in names
-        ]
-        return catalogues
-
-    @classmethod
-    def generate_channels_by_category(
-        cls, category, lazy=True, genred=True, n_days=30, async_pull=True, store=True
-    ):
-        """
-        Generate programme catalogues for a category of channels, e.g. 'national'
-        """
-        channel_names = ChannelPicker.keys_by_category(category, remove_variants=True)
-        catalogues = cls.generate_channels_by_names(
-            channel_names, lazy, genred, n_days, async_pull, store
-        )
-        # May need to retry in case httpx throws ConnectTimeout error?
-        return catalogues
-
-    @classmethod
-    def generate_channels_by_titles(
-        cls, titles, lazy=True, genred=True, n_days=30, async_pull=True, store=True
-    ):
-        """
-        Generate programme catalogues for a list of titles, e.g.
-        `["BBC Radio 1", "BBC Radio 2"]` (matching those in `beeb.nav.channel_ids`)
-        """
-        if isinstance(titles, str):
-            titles = [titles]
-        channel_names = [
-            ChannelPicker.by_title(t, return_value=False) for t in titles
-        ]
-        catalogues = cls.generate_channels_by_names(
-            channel_names, lazy, genred, n_days, async_pull, store
-        )
-        return catalogues

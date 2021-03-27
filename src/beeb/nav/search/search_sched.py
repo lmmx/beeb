@@ -66,7 +66,7 @@ class ScheduleSieve(Sieve):
 
 
 class ScheduleSearchMixIn:
-    def __init__(
+    def get_broadcast_by_title(
         self,
         title,
         pid_only=False,
@@ -87,15 +87,7 @@ class ScheduleSearchMixIn:
         """
         # Either one ChannelSchedule, or a ChannelListings with `.schedules` attr
         from_sched = hasattr(self, "broadcasts")
-        # from_listing = hasattr(self, "schedules")
-        # if not (from_listing or from_sched):
-        #    raise ValueError("Need either schedules nor broadcasts attribute")
         sieve = ScheduleSieve(
             title, pid_only, multi, regex, case_insensitive, synopsis, throw
         )
         return sieve.search(self) if from_sched else sieve.search_listings(self)
-
-    # Bind the init method of a mixin class: common method interface between
-    # mixin inheritors without kwarg passing (unlike kwarg passing, keeps
-    # informative docstrings), while also clarifying where the filter logic really is
-    get_broadcast_by_title = __init__

@@ -1,6 +1,4 @@
 from functools import partial
-from httpx import RemoteProtocolError
-from h2.exceptions import ProtocolError
 from .async_utils import fetch_schedules, fetch_episode_metadata
 from .remote import RemoteMixIn
 from .schedule import ChannelSchedule
@@ -8,7 +6,7 @@ from ..search import ScheduleSearchMixIn
 from ..channel_ids import ChannelPicker
 from ...api.json_helpers import EpisodeMetadataPidJson
 from ...time import parse_abs_from_rel_date, parse_date_range
-from ...share import batch_multiprocess_with_return
+from ...share import batch_multiprocess_with_return, async_errors
 
 __all__ = ["ChannelListings"]
 
@@ -54,7 +52,7 @@ class ChannelListings(ScheduleSearchMixIn, RemoteMixIn):
         for i in range(n_retries):
             try:
                 fetch_schedules(self.urlset, self.schedules)
-            except (ProtocolError, RemoteProtocolError) as e:
+            except async_errors as e:
                 if verbose:
                     print(f"Error occurred {e}, retrying")
                 if i == n_retries - 1:
