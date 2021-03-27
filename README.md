@@ -221,7 +221,7 @@ to avoid too much parameter passing).
 
 From the ChannelListings you can build `ProgrammeCatalogue` dictionaries,
 by inspecting the parent programme IDs of each of the broadcasts in the schedules
-within the listings.
+within the listings. Catalogues for multiple stations can be organised in a `ProgrammeGuide`.
 
 <details><summary>❧ Click here for ProgrammeCatalogue examples</summary>
 
@@ -425,24 +425,27 @@ m000tcdl|Selection of BBC World Service Programmes|Factual|r4
 If your programme(s) of interest are regular, long-running ones, they should be
 included in the database of programmes which ships with beeb.
 
-<details><summary>❧ Click here for ProgrammeCatalogue database support and bulk actions</summary>
+<details><summary>❧ Click here for ProgrammeCatalogue database support and multiple channel catalogues in ProgrammeGuide</summary>
 
 <p>
 
-The `ProgrammeCatalogue` can also be produced for entire categories of
-channel (e.g. all national radio channels), and automatically stored in
-a database by calling `ProgrammeCatalogue.generate_channels_by_category(c)`,
-where `c` is either "national", "regional", "local", or a list of one or
-more of those options.
+Multiple `ProgrammeCatalogue` objects can also be produced in a `ProgrammeGuide`.
+This is a glorified dictionary, keyed by the station name and with the catalogues
+as its values.
 
-The package ships with a programme catalogue database (national channels only,
-variants not included, i.e. only FM variants of those with multiple 'outlets').
+To create a `ProgrammeGuide` for an entire categories of stations (available
+categories: "national", "regional", "local"), and automatically store them in
+a database, call `ProgrammeGuide.generate_by_category(c)`,
+where `c` is either one of the options, or a list of them.
+
+The package ships with a catalogue database populated with the national channels
+(excluding variants: only FM 'outlets' for those with multiple which share a station title).
 
 Populating the programme catalogues database for all national channels
-takes approximately 1m30s, and then can be reloaded instantly:
+takes approximately 60 to 90 seconds, and then can be reloaded instantly:
 
 ```py
-beeb.nav.ProgrammeCatalogue.generate_channels_by_category("national")
+beeb.nav.ProgrammeGuide.generate_by_category("national")'
 ```
 
 The following SQL query shows duplicates in the resulting database

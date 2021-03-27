@@ -5,10 +5,12 @@ __all__ = ["ProgrammeGuide"]
 
 
 class ProgrammeGuide(dict):
-    def __init__(self, station_names, with_genre=False, n_days=30, async_pull=True, store=False):
+    def __init__(
+        self, station_names, with_genre=False, n_days=30, async_pull=True, store=False
+    ):
         self.genred = with_genre
         self.n_days = n_days
-        for n in sorted(channel_names):
+        for n in sorted(station_names):
             self.record_catalogue(n, async_pull=async_pull, store=store)
 
     def record_catalogue(self, station_name, async_pull=True, store=False):
@@ -19,13 +21,19 @@ class ProgrammeGuide(dict):
             with_genre=self.genred,
             n_days=self.n_days,
             async_pull=async_pull,
-            store=store
+            store=store,
         )
         self.update({station_name: pc})
 
     @classmethod
     def generate_by_names(
-        cls, names, lazy=True, genred=True, n_days=30, async_pull=True, store=True
+        cls,
+        station_names,
+        lazy=True,
+        genred=True,
+        n_days=30,
+        async_pull=True,
+        store=True,
     ):
         """
         Generate programme catalogues for a list of names, e.g.
@@ -37,11 +45,19 @@ class ProgrammeGuide(dict):
                 raise KeyError(f"{station_name=} is already a recorded key")
             pc = (
                 ProgrammeCatalogue.lazy_generate(
-                    c, genred=genred, n_days=n_days, async_pull=async_pull, store=store
+                    station_name,
+                    genred=genred,
+                    n_days=n_days,
+                    async_pull=async_pull,
+                    store=store,
                 )
                 if lazy
                 else ProgrammeCatalogue(
-                    c, with_genre=genred, n_days=n_days, async_pull=async_pull, store=store
+                    station_name,
+                    with_genre=genred,
+                    n_days=n_days,
+                    async_pull=async_pull,
+                    store=store,
                 )
             )
             guide.update({station_name: pc})
@@ -54,9 +70,9 @@ class ProgrammeGuide(dict):
         """
         Generate programme catalogues for a category of channels, e.g. 'national'
         """
-        channel_names = ChannelPicker.keys_by_category(category, remove_variants=True)
+        station_names = ChannelPicker.keys_by_category(category, remove_variants=True)
         guide = cls.generate_by_names(
-            channel_names, lazy, genred, n_days, async_pull, store
+            station_names, lazy, genred, n_days, async_pull, store
         )
         # May need to retry in case httpx throws ConnectTimeout error?
         return guide
@@ -71,10 +87,8 @@ class ProgrammeGuide(dict):
         """
         if isinstance(titles, str):
             titles = [titles]
-        channel_names = [
-            ChannelPicker.by_title(t, return_value=False) for t in titles
-        ]
+        station_names = [ChannelPicker.by_title(t, return_value=False) for t in titles]
         guide = cls.generate_by_names(
-            channel_names, lazy, genred, n_days, async_pull, store
+            station_names, lazy, genred, n_days, async_pull, store
         )
         return guide
