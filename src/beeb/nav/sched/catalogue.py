@@ -1,6 +1,7 @@
 from .async_utils import fetch_episode_metadata, async_errors
 from .programme import Programme
 from .listings import ChannelListings
+from ..channel_ids import ChannelPicker
 from ...api.json_helpers import EpisodeMetadataPidJson
 from ...share.db_utils import CatalogueDB
 from sys import stderr
@@ -8,7 +9,7 @@ from sys import stderr
 __all__ = ["ProgrammeCatalogue"]
 
 class ProgrammeCatalogue(dict):
-    def __init__(self, station_name, with_genre=False, n_days=30, async_pull=True):
+    def __init__(self, station_name, with_genre=False, n_days=30, async_pull=True, store=False):
         """
         Given a channel name, build a dict of programme PIDs and programme titles.
         If `with_genre` is True, make the value a 2-tuple of (title, genre).
@@ -23,6 +24,8 @@ class ProgrammeCatalogue(dict):
                 self.async_pull_and_parse(listings)
             else:
                 self.pull_and_parse(listings)
+            if store:
+                self.store_db()
 
     def pull_and_parse(self, listings):
         self.parse_broadcast_records(listings.all_broadcasts, sync=True)
@@ -59,10 +62,10 @@ class ProgrammeCatalogue(dict):
                 if not sync and not hasattr(b, "frozen_data"):
                     # The episode was skipped and no data stored on it, so skip here too
                     continue
-                prog_pid = b.pid if sync else b.frozen_data.episode_pid
+                ep_pid = b.pid if sync else b.frozen_data.episode_pid
                 prefab = None if sync else b.frozen_data
-                # No need to re-assign the program PID, just title and possibly genre
-                _, prog_title, *opt_genre = parse_json(prog_pid, prefab=prefab)
+                # Obtain program PID from episode PID, also title and possibly genre
+                prog_pid, prog_title, *opt_genre = parse_json(ep_pid, prefab=prefab)
                 prog_genre = opt_genre[0] if self.genred else None
                 if prog_pid in self:
                     continue # Already processed this programme
@@ -70,7 +73,7 @@ class ProgrammeCatalogue(dict):
             except KeyError as e:
                 # One off programmes don't have a "parent" key (not a "series"/"brand")
                 continue
-            finally:
+            else:
                 self.record_programme(prog)
 
     def record_programme(self, programme):
@@ -104,6 +107,33 @@ class ProgrammeCatalogue(dict):
         for pid, title, genre, station in db_entries:
             prog = Programme(pid, title, genre, station)
             catalogue.record_programme(prog)
+        return catalogue
+    
+    @classmethod
+    def lazy_generate(
+            cls, station_name, genred=True, n_days=30, async_pull=True, store=True
+        ):
+        """
+        Try to reload from database, only pull fresh catalogue if not available.
+        """
+        # Set up a temporary object that'll be overwritten after ensuring exists
+        catalogue = cls(station_name, with_genre=genred, n_days=0)
+        try:
+            catalogue.ensure_db(no_touch=True)
+        except FileNotFoundError:
+            db_exists = False
+        else:
+            db_exists = catalogue.db.exists()
+        if db_exists and catalogue.db.has_station(station_name):
+            catalogue = cls.regenerate_from_db(station_name)
+            if genred and not catalogue.genred:
+                print(f"(!) The reloaded catalogue is ungenred: {catalogue}")
+        else:
+            catalogue = cls(
+                station_name, with_genre=genred, n_days=n_days, async_pull=async_pull
+            )
+            if store:
+                catalogue.store_db()
         return catalogue
 
     def ensure_db(self, no_touch=False):
@@ -144,3 +174,55 @@ class ProgrammeCatalogue(dict):
             return Programme(*result)
         else:
             raise KeyError(f"{pid=} not found in {self.db}")
+
+    @classmethod
+    def generate_channels_by_names(
+            cls, names, lazy=True, genred=True, n_days=30, async_pull=True, store=True
+        ):
+        """
+        Generate programme catalogues for a list of names, e.g.
+        `["r1", "r2"]` (matching those in `beeb.nav.channel_ids`)
+        """
+        catalogues = [
+            cls.lazy_generate(
+                c, genred=genred, n_days=n_days, async_pull=async_pull, store=store
+            )
+            if lazy
+            else cls(
+                c, with_genre=genred, n_days=n_days, async_pull=async_pull, store=store
+            )
+            for c in names
+        ]
+        return catalogues
+
+    @classmethod
+    def generate_channels_by_category(
+        cls, category, lazy=True, genred=True, n_days=30, async_pull=True, store=True
+    ):
+        """
+        Generate programme catalogues for a category of channels, e.g. 'national'
+        """
+        channel_names = ChannelPicker.keys_by_category(category, remove_variants=True)
+        catalogues = cls.generate_channels_by_names(
+            channel_names, lazy, genred, n_days, async_pull, store
+        )
+        # May need to retry in case httpx throws ConnectTimeout error?
+        return catalogues
+
+    @classmethod
+    def generate_channels_by_titles(
+        cls, titles, lazy=True, genred=True, n_days=30, async_pull=True, store=True
+    ):
+        """
+        Generate programme catalogues for a list of titles, e.g.
+        `["BBC Radio 1", "BBC Radio 2"]` (matching those in `beeb.nav.channel_ids`)
+        """
+        if isinstance(titles, str):
+            titles = [titles]
+        channel_names = [
+            ChannelPicker.by_title(t, return_value=False) for t in titles
+        ]
+        catalogues = cls.generate_channels_by_names(
+            channel_names, lazy, genred, n_days, async_pull, store
+        )
+        return catalogues
