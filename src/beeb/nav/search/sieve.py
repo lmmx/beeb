@@ -4,13 +4,13 @@ __all__ = ["Sieve"]
 
 
 class Sieve:
-    def __init__(self, query, pid_only, multi, regex, uncased, synopsis, throw):
+    def __init__(self, query, pid_only, multi, regex, uncased, all_fields, throw):
         self.query = query
         self.pid_only = pid_only
         self.multi = multi
         self.regex = regex
         self.uncased = uncased
-        self.synopsis = synopsis
+        self.all_fields = all_fields
         self.throw = throw
 
     def is_match(self, target):

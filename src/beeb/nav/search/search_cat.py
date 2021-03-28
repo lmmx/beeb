@@ -1,28 +1,25 @@
 import re
 from .sieve import Sieve
 
-__all__ = ["ScheduleSieve", "ScheduleSearchMixIn"]
+__all__ = ["CatalogueSieve", "CatalogueSearchMixIn"]
 
 
-class ScheduleSieve(Sieve):
+class CatalogueSieve(Sieve):
     """
-    Internal exposed via ScheduleSearchMixIn, reusable for multiple schedules.
+    Internal exposed via CatalogueSearchMixIn, reusable for multiple catalogues.
     """
 
-    def search(self, schedule):
+    def search(self, catalogue):
         v = [
-            b.pid if self.pid_only else b
-            for b in schedule.broadcasts
-            if any(
-                self.is_match(t)
-                for t in (
-                    [b.title, b.subtitle, b.synopsis] if self.all_fields else [b.title]
-                )
+            pid if self.pid_only else (pid, val)
+            for pid, val in catalogue.items()
+            if self.is_match(
+                val[0] if catalogue.genred else val
             )
         ]
         if not v:
             if self.throw:
-                msg = f"No broadcast {self._query_repr_} on {schedule.date_repr}"
+                msg = f"No programme {self._query_repr_} in catalogue"
                 raise ValueError(msg)
             elif not self.multi:
                 v = None
@@ -30,14 +27,14 @@ class ScheduleSieve(Sieve):
             v = v[0]
         return v
 
-    def search_listings(self, listings):
+    def search_guide(self, guide):
         errors = []  # only populated if throwing errors
         result = [] if self.multi else None
-        for schedule in listings.schedules:
+        for station_name, catalogue in guide.items():
             try:
-                search_result = self.search(schedule)
+                search_result = self.search(catalogue)
                 if self.multi:
-                    # flat list: don't distinguish individual schedules in listings
+                    # flat list: don't distinguish individual catalogues in guide
                     result.extend(search_result)  # does nothing if empty list returned
                 elif search_result:
                     # First non-None: break out of for loop ASAP, return result
@@ -46,7 +43,7 @@ class ScheduleSieve(Sieve):
             except ValueError as e:
                 if self.throw:
                     errors.append(e)
-                # Ignore all errors until iterating through all schedules
+                # Ignore all errors until iterating through all catalogues
         if errors and not result:
             self._handle_errors(errors)
         return result
@@ -56,41 +53,38 @@ class ScheduleSieve(Sieve):
             litany = []
             for e in errors:
                 litany.extend(e.args)
-            if all(e.startswith("No broadcast") for e in litany):
+            if all(e.startswith("No programme") for e in litany):
                 error_start = " ".join(litany[0].split(" ")[:-2])
-                error_start_date = litany[0].split(" ")[-1]
-                error_end_date = litany[-1].split(" ")[-1]
-                error_date_range = f"{error_start_date} and {error_end_date}"
-                err_str = f"{error_start} between {error_date_range}"
+                error_count = f"({len(errors)} errors)"
+                err_str = f"{error_start} {error_count}"
             else:
                 err_str = f"Multiple errors:\n" + "\n".join(litany)
             raise ValueError(err_str)
         raise errors[0]
 
 
-class ScheduleSearchMixIn:
-    def get_broadcast_by_title(
+class CatalogueSearchMixIn:
+    def get_programme_by_title(
         self,
         title,
         pid_only=False,
         multi=False,
         regex=False,
         case_insensitive=False,
-        all_fields=False,
         throw=True,
     ):
         """
-        Return the first broadcasts matching the given `title` if `multi` is
+        Return the first programmes matching the given `title` if `multi` is
         False (default) or a list of all matches if `multi` is True. Return
         only the `pid` string if `pid_only` is True. If `throw` is True (default),
         raise error if not found else return `None` (if not `multi`) or empty list
         (if `multi` is True). Match the `title` as a regular expression if `regex` is
-        True (raw strings are recommended for this). Also match against the subtitle
-        and synopsis if `all_fields` is True.
+        True (raw strings are recommended for this).
         """
-        # Either one ChannelSchedule, or a ChannelListings with `.schedules` attr
-        from_sched = hasattr(self, "broadcasts")
-        sieve = ScheduleSieve(
+        # Either one ProgrammeCatalogue, or a ProgrammeGuide
+        from_cat = hasattr(self, "station_name")
+        all_fields = False # not used for catalogues
+        sieve = CatalogueSieve(
             title, pid_only, multi, regex, case_insensitive, all_fields, throw
         )
-        return sieve.search(self) if from_sched else sieve.search_listings(self)
+        return sieve.search(self) if from_cat else sieve.search_guide(self)

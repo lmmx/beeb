@@ -1,10 +1,11 @@
 from .catalogue import ProgrammeCatalogue
+from ..search import CatalogueSearchMixIn
 from ..channel_ids import ChannelPicker
 
 __all__ = ["ProgrammeGuide"]
 
 
-class ProgrammeGuide(dict):
+class ProgrammeGuide(CatalogueSearchMixIn, dict):
     def __init__(
         self, station_names, with_genre=False, n_days=30, async_pull=True, store=False
     ):

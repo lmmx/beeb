@@ -1,5 +1,6 @@
 from ..sched.programme import Programme
 from ..sched.listings import ChannelListings
+from ..search import CatalogueSearchMixIn
 from ...api.json_helpers import EpisodeMetadataPidJson
 from ...share.db_utils import CatalogueDB
 from ...share.http_utils import async_errors
@@ -7,7 +8,7 @@ from sys import stderr
 
 __all__ = ["ProgrammeCatalogue"]
 
-class ProgrammeCatalogue(dict):
+class ProgrammeCatalogue(CatalogueSearchMixIn, dict):
     def __init__(self, station_name, with_genre=False, n_days=30, async_pull=True, store=False):
         """
         Given a channel name, build a dict of programme PIDs and programme titles.

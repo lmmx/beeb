@@ -448,6 +448,18 @@ takes approximately 60 to 90 seconds, and then can be reloaded instantly:
 beeb.nav.ProgrammeGuide.generate_by_category("national")'
 ```
 
+Unlike the episodes in `ChannelSchedule` and `ChannelListings`, this is
+(potentially) available at runtime, instantly, making it preferable for
+metadata lookup in some cases.
+
+```py
+>>> guide = beeb.nav.ProgrammeGuide.generate_by_category("national")
+>>> guide.get_programme_by_title("Today")
+('b006qj9z', ('Today', 'News'))
+>>> guide.get_programme_by_title("Today", pid_only=True)
+'b006qj9z'
+```
+
 The following SQL query shows duplicates in the resulting database
 ([via](https://stackoverflow.com/a/36384145/2668831)). Note that these are
 permitted as the primary key consists of both the programme ('brand') PID
