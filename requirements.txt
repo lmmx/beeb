@@ -1,6 +1,7 @@
 bs4
 httpx[http2]
 aiostream
+aiofiles
 tqdm
 more_itertools
 python-dateutil

@@ -1,4 +1,6 @@
+from .async_utils import fetch_urlset
 from ..api.url_helpers import EpisodeStreamPartURL
+from pathlib import Path
 
 __all__ = ["StreamUrlSet"]
 
@@ -52,3 +54,19 @@ class StreamUrlSet(EpisodeStreamPartURL):
             p = self.pos
             self.increment_pos()
             yield self.make_part_url(p)
+
+    @classmethod
+    def from_last_m4s_url(cls, last_url):
+        last_filename = Path(Path(last_url).name)
+        url_prefix = last_url[: -len(last_filename.name)]
+        url_suffix = last_filename.suffix
+        fname_prefix, fname_sep, last_file_num = last_filename.stem.rpartition("-")
+        if not last_file_num.isnumeric():
+            raise ValueError(f"{last_file_num} was non-numeric")
+        if fname_prefix == fname_sep == "":
+            # rpartition gives two empty strings and the original if separator not found
+            raise ValueError("Failed to parse filename (did not contain '-' separator)")
+        last_file_num = int(last_file_num)
+        return cls(last_file_num, url_prefix, fname_prefix, fname_sep, url_suffix)
+
+    fetch_urlset = fetch_urlset
