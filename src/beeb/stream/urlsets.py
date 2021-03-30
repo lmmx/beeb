@@ -1,4 +1,5 @@
 from .async_utils import fetch_urlset
+from ..api import final_m4s_link_from_programme_pid, get_programme_pid_by_name
 from ..api.url_helpers import EpisodeStreamPartURL
 from pathlib import Path
 
@@ -32,7 +33,8 @@ class StreamUrlSet(EpisodeStreamPartURL):
 
     @property
     def pos_end(self):
-        return self.size if self.zero_based else self.size + 1
+        "There is already a +1 offset due to inclusion of the DASH URL"
+        return self.size -1 if self.zero_based else self.size
 
     def reset_pos(self):
         self.pos = 0 if self.zero_based else 1
@@ -67,6 +69,17 @@ class StreamUrlSet(EpisodeStreamPartURL):
             # rpartition gives two empty strings and the original if separator not found
             raise ValueError("Failed to parse filename (did not contain '-' separator)")
         last_file_num = int(last_file_num)
-        return cls(last_file_num, url_prefix, fname_prefix, fname_sep, url_suffix)
+        n_urls = last_file_num + 1
+        return cls(n_urls, url_prefix, fname_prefix, fname_sep, url_suffix)
+
+    @classmethod
+    def from_programme_pid(cls, programme_pid, ymd):
+        last_link_url = final_m4s_link_from_programme_pid(programme_pid, ymd=ymd)
+        return cls.from_last_m4s_url(last_link_url)
+
+    @classmethod
+    def from_programme_name(cls, programme_name, station_name, date):
+        programme_pid = get_programme_pid_by_name(programme_name, station_name)
+        return cls.from_programme_pid(programme_pid, date)
 
     fetch_urlset = fetch_urlset

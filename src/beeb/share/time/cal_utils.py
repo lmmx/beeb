@@ -8,10 +8,12 @@ __all__ = [
     "cal_y", "cal_m", "cal_d",
     "cal_path",
     "y_shift", "m_shift", "d_shift",
-    "cal_shift", "cal_date",
+    "cal_shift",
+    "cal_date",
     "parse_abs_from_rel_date",
-    "parse_date_range"
+    "parse_date_range",
 ]
+
 
 def cal_y(date=cal_date.today(), full_y=True):
     """
@@ -27,7 +29,7 @@ def cal_m(date=cal_date.today(), zf=True, with_name=False):
     optionally suffixed with [lower case] abbreviated month name
     (default: suffixed)
     """
-    month_num = "m" if zf else "-m" # optionally zero fill
+    month_num = "m" if zf else "-m"  # optionally zero fill
     month_str = "%b" if with_name else ""
     return date.strftime(f"%{month_num}{month_str}").lower()
 
@@ -36,11 +38,13 @@ def cal_d(date=cal_date.today(), zf=True):
     """
     Month, optionally left-padded with zeroes (default: pad)
     """
-    day_num = "d" if zf else "-d" # optionally zero fill
+    day_num = "d" if zf else "-d"  # optionally zero fill
     return date.strftime(f"%{day_num}")
 
 
-def cal_path(date=cal_date.today(), as_tuple=False, full_y=True, zf=True, month_names=False):
+def cal_path(
+    date=cal_date.today(), as_tuple=False, full_y=True, zf=True, month_names=False
+):
     cal_y_func = partial(cal_y, full_y=full_y)
     cal_m_func = partial(cal_m, zf=zf, with_name=month_names)
     cal_d_func = partial(cal_d, zf=zf)
@@ -66,6 +70,7 @@ def d_shift(d=0, date=cal_date.today()):
 def cal_shift(y=0, m=0, d=0, date=cal_date.today()):
     return date + rd(years=y, months=m, days=d) if any([y, m, d]) else date
 
+
 def parse_abs_from_rel_date(ymd=None, ymd_ago=None):
     if ymd is ymd_ago is None:
         ymd = cal_date.today()
@@ -85,6 +90,7 @@ def parse_abs_from_rel_date(ymd=None, ymd_ago=None):
     # In each of the above cases `ymd` is now a `datetime.date` object
     return ymd
 
+
 def parse_date_range(from_date=None, to_date=None, n_days=None, max_days_ago=30):
     """
     Handle all possible specifications of date ranges from default blank arguments,
@@ -101,7 +107,7 @@ def parse_date_range(from_date=None, to_date=None, n_days=None, max_days_ago=30)
                 n_days = max_days_ago
             to_date = parse_abs_from_rel_date(from_date, ymd_ago=ymd_shift)
         else:
-            to_date = parse_abs_from_rel_date() # defaults to today's date
+            to_date = parse_abs_from_rel_date()  # defaults to today's date
     # to_date has now been acquired
     if from_date:
         # disregard `n_days` even if supplied, explicit_date overrules it
@@ -112,5 +118,5 @@ def parse_date_range(from_date=None, to_date=None, n_days=None, max_days_ago=30)
         ymd_shift = (0, 0, 1 - n_days)
         from_date = parse_abs_from_rel_date(to_date, ymd_ago=ymd_shift)
     if to_date < from_date:
-        raise ValueError(f"{to_date=} is before {from_date=}") # impossible
+        raise ValueError(f"{to_date=} is before {from_date=}")  # impossible
     return from_date, to_date, n_days

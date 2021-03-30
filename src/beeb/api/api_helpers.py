@@ -47,26 +47,44 @@ def get_episode_dict(programme_pid, page_num=1, paginate_until_ymd=None):
     """
     return EpisodeListingsHtml(programme_pid, page_num, paginate_until_ymd).episodes_dict
 
-def get_programme_pid_by_name(programme_name, station_name, n_days=2):
+def get_programme_pid_by_name(programme_name, station_name, n_days=30):
     """
     Given the name of a programme and a channel, return the PID for the programme.
+    Try catalogue shipped in package database first (no fetching required)
+
+    If it's not in this stored catalogue, fetch from web listings
     """
-    listings = ChannelListings.from_channel_name(station_name, n_days=n_days)
+    # TODO: make station_name optional and just search entire guide/listings?
     try:
-        episode = listings.get_broadcast_by_title(programme_name)
-    except ValueError as e:
-        msg = f"No programme '{programme_name}' found, try increasing {n_days=}"
-        raise NotImplementedError(msg)
-    finally:
-        programme_pid = EpisodeMetadataPidJson.get_programme_pid(episode.pid)
+        cat = ProgrammeCatalogue.regenerate_from_db(station_name)
+        programme_pid = cat.get_programme_by_title(programme_name, pid_only=True)
+    except ValueError: # thrown if programme not in catalogue
+        listings = ChannelListings.from_channel_name(station_name, n_days=n_days)
+        try:
+            episode = listings.get_broadcast_by_title(programme_name)
+        except ValueError as e:
+            msg = f"No programme '{programme_name}' found, try increasing {n_days=}"
+            raise NotImplementedError(msg)
+        else:
+            programme_pid = EpisodeMetadataPidJson.get_programme_pid(episode.pid)
+            # Should probably update the stored database or at least suggest?
     return programme_pid
 
-def get_programme_dict(station_name, with_genre=False, n_days=1):
+def get_programme_dict(station_name, with_genre=False, n_days=30, force_renew=False):
     """
     Given the name of a channel, return a dict of programme PIDs and programme titles.
     If `with_genre` is True, make the value a 2-tuple of (title, genre).
+
+    If it's not in this stored catalogue, fetch from web listings (or if
+    `force_renew` is True).
     """
-    return ProgrammeCatalogue(station_name, with_genre, n_days)
+    cat = {} if force_renew else ProgrammeCatalogue.regenerate_from_db(station_name)
+    if not cat:
+        # Either due to force_renew or not being in the database after regeneration
+        cat = ProgrammeCatalogue(station_name, with_genre, n_days)
+    elif not with_genre:
+        cat.ungenre() # Presumption that stored database is always genred
+    return cat
 
 def get_genre_programme_dict(station_name, n_days=1):
     programme_dict = get_programme_dict(station_name, with_genre=True, n_days=n_days)

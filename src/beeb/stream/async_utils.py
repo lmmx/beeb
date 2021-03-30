@@ -16,7 +16,7 @@ async def fetch(session, url, raise_for_status=False):
 
 async def process(data, download_dir, pbar=None, verbose=False):
     if not download_dir.exists():
-        download_dir.mkdir()
+        download_dir.mkdir(parents=True)
     filename = Path(str(data.url)).name
     download_filepath = download_dir / filename
     async with aiofiles.open(download_filepath, "wb") as f:

@@ -5,8 +5,8 @@ from .schedule import ChannelSchedule
 from ..search import ScheduleSearchMixIn
 from ..channel_ids import ChannelPicker
 from ...api.json_helpers import EpisodeMetadataPidJson
-from ...time import parse_abs_from_rel_date, parse_date_range
 from ...share import batch_multiprocess_with_return, async_errors
+from ...share.time import parse_abs_from_rel_date, parse_date_range
 
 __all__ = ["ChannelListings"]
 

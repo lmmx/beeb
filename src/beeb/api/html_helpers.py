@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup as BS
 from math import ceil
-from ..time.isotime import total_seconds_in_isoduration
+from ..share.time.isotime import total_seconds_in_isoduration
 from .serialisation import HtmlHandler
 
 # TODO make this file into a HTML helper version supported by .serialisation

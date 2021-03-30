@@ -4,7 +4,7 @@ from .remote import RemoteMixIn
 from ..search import ScheduleSearchMixIn
 from ..channel_ids import ChannelPicker
 from ...share.http_utils import GET
-from ...time import parse_abs_from_rel_date, cal_path
+from ...share.time import parse_abs_from_rel_date, cal_path
 
 __all__ = ["ChannelSchedule"]
 

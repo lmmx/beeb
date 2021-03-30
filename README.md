@@ -507,6 +507,27 @@ and then multiple `.dash` files, and if you have all of these you can build a MP
 > As far as I know the access to these is geo-fenced, i.e. you must
 > be in the UK to download but this may vary between programmes/stations.
 
+To download an episode, initialise a `Stream` object, which will pull the component MPEG-DASH stream
+parts, merge them, and transcode from MP4 to WAV at 16k, as is desirable for most audio handling
+(but note this transcoding does increase the filesize). By default, the individual parts are deleted
+after download.
+
+The default download directory is a package-internal path beneath `beeb.data.store`, followed by
+a subpath denoting: station » programme (by PID) » year » month » day. To change the directory,
+subclass or otherwise set `_root_store_dir`.
+
+- Another option is to initialise with `defer_pull=False`, set the attribute, 
+  then call the `Stream`'s `pull()` and `preprocess()` methods.
+
+To download an episode by name and date, use the helper class method `Stream.from_name`:
+
+```py
+beeb.stream.Stream.from_name("r4", "Today", ymd=(2021,3,30))
+```
+
+> The station ID (in this example, "r4") can be looked up in `channel_ids` or with the
+> `ChannelPicker.by_name` helper class method.
+
 The most directly useful functions (which I've needed when interacting with BBC Sounds API) are
 those to obtain the M4S links: you only need the final one to construct the full set of URLs
 to obtain a complete MP4.

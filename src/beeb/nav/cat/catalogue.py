@@ -98,7 +98,7 @@ class ProgrammeCatalogue(CatalogueSearchMixIn, dict):
         return genre_dict
 
     @classmethod
-    def regenerate_from_db(cls, station_name):
+    def regenerate_from_db(cls, station_name, with_genre=True):
         catalogue = cls(station_name, with_genre=True, n_days=0)
         catalogue.ensure_db(no_touch=True)
         db_entries = catalogue.retrieve_station_in_db()
@@ -107,6 +107,8 @@ class ProgrammeCatalogue(CatalogueSearchMixIn, dict):
         for pid, title, genre, station in db_entries:
             prog = Programme(pid, title, genre, station)
             catalogue.record_programme(prog)
+        if not with_genre:
+            catalogue.ungenre() # Ensure removed post-hoc if not desired
         return catalogue
     
     @classmethod
@@ -174,3 +176,9 @@ class ProgrammeCatalogue(CatalogueSearchMixIn, dict):
             return Programme(*result)
         else:
             raise KeyError(f"{pid=} not found in {self.db}")
+
+    def ungenre(self):
+        if self.genred:
+            for k, v in self.items():
+                self.update({k: v[0]})
+            self.genred = False

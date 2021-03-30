@@ -1,6 +1,6 @@
 from .serialisation import XmlHandler
 from .json_helpers import MediasetJson
-from ..time.isotime import total_seconds_in_isoduration
+from ..share.time.isotime import total_seconds_in_isoduration
 from math import ceil
 
 __all__ = ["MpdXml"]
