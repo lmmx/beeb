@@ -26,11 +26,12 @@ object-oriented Python.
 - BeautifulSoup
 - HTTPX
   - A `requests`-like API with async and HTTP/2 support
-- aiostream
-  - Asynchronous requests to speed up channel listings retrieval
+- aiostream, aiofiles
+  - Asynchronous requests to speed up channel listings retrieval and stream downloads
 - tqdm
   - Gives the option to show progress when multiprocessing channel listings
 - `more_itertools`
+- dateutil
 
 </p>
 
