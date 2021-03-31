@@ -25,6 +25,7 @@ class Stream(Episode):
     path of the `beeb.data.store` module, beneath which are directories
     for station > programme (by PID) > year > month > day.
     """
+
     def __init__(
         self,
         station,
@@ -35,6 +36,7 @@ class Stream(Episode):
         transcode_to_wav=True,
         clean_up=True,
         gathered_filename_stem="episode",
+        custom_storage_path=None,
     ):
         # Set repr and directory properties for:
         # station, programme, episode, date
@@ -43,6 +45,8 @@ class Stream(Episode):
         self.transcode_to_wav = transcode_to_wav
         self.gathered_filename_stem = gathered_filename_stem
         self.clean_up = clean_up
+        if custom_storage_path:
+            self.customise_root_store_dir(custom_storage_path)
         if not defer_pull:
             self.pull()
             self.preprocess()
@@ -62,7 +66,7 @@ class Stream(Episode):
     def gathered_filename(self, pre_transcode=False):
         gathered_ext = "wav" if self.transcode_to_wav and not pre_transcode else "mp4"
         return f"{self.gathered_filename_stem}.{gathered_ext}"
-    
+
     @property
     def preprocessed_output_file(self):
         return self.episode_dir / self.gathered_filename()
@@ -92,8 +96,7 @@ class Stream(Episode):
             if file_count_ok and no_subdirs:
                 for f in self.download_dir.iterdir():
                     f.unlink()
-                self.download_dir.rmdir() # Delete assets directory if empty
-
+                self.download_dir.rmdir()  # Delete assets directory if empty
 
     @property
     def stream_urls(self):
@@ -115,12 +118,31 @@ class Stream(Episode):
         return self.__stream__
 
     @classmethod
-    def from_name(cls, station, programme_name, ymd=None, ymd_ago=None, defer_pull=False):
+    def from_name(
+        cls,
+        station,
+        programme_name,
+        ymd=None,
+        ymd_ago=None,
+        defer_pull=False,
+        transcode_to_wav=True,
+        clean_up=True,
+        gathered_filename_stem="episode",
+        custom_storage_path=None,
+    ):
         programme_pid = get_programme_pid_by_name(programme_name, station)
         date = parse_abs_from_rel_date(ymd=ymd, ymd_ago=ymd_ago)
         ymd = (date.year, date.month, date.day)
         urlset = StreamUrlSet.from_programme_pid(programme_pid, ymd)
         stream = cls(
-            station, programme_pid, date, urlset, defer_pull=defer_pull
+            station,
+            programme_pid,
+            date,
+            urlset,
+            defer_pull=defer_pull,
+            transcode_to_wav=transcode_to_wav,
+            clean_up=clean_up,
+            gathered_filename_stem=gathered_filename_stem,
+            custom_storage_path=custom_storage_path,
         )
         return stream

@@ -1,10 +1,13 @@
 from ..nav import ChannelPicker
 from ..data.store import _dir_path as store_dir
+from pathlib import Path
 
 __all__ = ["Broadcaster", "Station"]
 
 class Broadcaster:
     "BBC is the only broadcaster supported by beeb"
+    _root_store_dir = store_dir
+
     def __init__(self):
         self._broadcaster = "bbc"
 
@@ -20,9 +23,14 @@ class Broadcaster:
         return self.__broadcaster__
     
     @property
-    def _root_store_dir(self):
+    def root_store_dir(self):
         "Overridable by subclass: default download directory root"
-        return store_dir
+        return self._root_store_dir
+
+    def customise_root_store_dir(self, custom_storage_path):
+        if isinstance(custom_storage_path, str):
+            custom_storage_path = Path(custom_storage_path).absolute()
+        self._root_store_dir = custom_storage_path
     
     @property
     def _store_dir(self):
