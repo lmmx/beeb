@@ -84,7 +84,7 @@ class Stream(Episode):
                 mp4 = self.episode_dir / self.gathered_filename(pre_transcode=True)
                 transcoded_wav = mp4_to_wav(mp4)
                 if self.clean_up:
-                    gathered_mp4.unlink(missing_ok=True)
+                    mp4.unlink(missing_ok=True)
         if self.clean_up and self.download_dir.exists():
             # Cannot actually delete files by name without recreating URLs generator
             file_count_ok = len([*self.download_dir.iterdir()]) == self.stream_urls.size
@@ -116,9 +116,6 @@ class Stream(Episode):
 
     @classmethod
     def from_name(cls, station, programme_name, ymd=None, ymd_ago=None, defer_pull=False):
-        """
-        Note: I think the first use of ymd should be y2k and the second shortened?
-        """
         programme_pid = get_programme_pid_by_name(programme_name, station)
         date = parse_abs_from_rel_date(ymd=ymd, ymd_ago=ymd_ago)
         ymd = (date.year, date.month, date.day)
