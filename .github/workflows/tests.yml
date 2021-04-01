@@ -46,4 +46,4 @@ jobs:
       - name: Run tests
         run: |
             pip install -r requirements/test.txt
-            pytest beeb
+            (cd .. && pytest beeb)
