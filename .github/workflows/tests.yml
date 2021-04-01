@@ -1,0 +1,49 @@
+# Workflow to test package
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+
+  test_beeb_linux:
+    name: linux-cp${{ matrix.python-version }}-${{ matrix.OPTIONS_NAME }}
+    runs-on: ubuntu-20.04
+
+    strategy:
+      # Ensure that a package tester finishes even if another fails
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+        OPTIONS_NAME: ["default"]
+        include:
+          - platform_id: manylinux_x86_64
+            python-version: 3.7
+          - platform_id: manylinux_x86_64
+            python-version: 3.8
+          - platform_id: manylinux_x86_64
+            python-version: 3.9
+
+
+
+
+    steps:
+      - name: Checkout beeb
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version}}
+
+      - name: Install package
+        env:
+            VERSION: ${{ matrix.python-version }}
+        run: |
+            set -ex
+            python -m pip install -r requirements/default.txt
+            pip install -vv -e .;
+
+      - name: Run tests
+        run: |
+            pip install -r requirements/test.txt
+            pytest beeb
